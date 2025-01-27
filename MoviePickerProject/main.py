@@ -77,6 +77,11 @@ def hybrid_recommendation(user_id, movie_title, algo, movies_df, top_n=5):
 # Flask API
 app = Flask(__name__)
 
+if __name__ == "__main__":
+    file_path = 'Movies.csv'
+    movies_df = preprocess_data(file_path)
+    print(movies_df.head())
+
 @app.route('/recommend', methods=['POST'])
 def recommend():
     data = request.json
