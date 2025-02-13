@@ -93,7 +93,7 @@ def recommend():
 
 if __name__ == '__main__':
     # Load dataset
-    movies_df = preprocess_data('movies.csv')
+    movies_df = preprocess_data('Movies.csv')
 
     # Train collaborative filtering model
     algo = train_collaborative_filtering(movies_df)
