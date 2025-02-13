@@ -1,6 +1,6 @@
 # Movie Recommendation System
 
-This project implements a hybrid movie recommendation system using both content-based filtering and collaborative filtering techniques. It takes input from users about movies they have watched and provides movie recommendations based on their preferences. The recommendation engine uses features such as genres, ratings, and actors to suggest movies that the users are likely to enjoy. 
+This project implements a movie recommendation system using both content-based filtering and collaborative filtering techniques. It takes input from users about movies they have watched and provides movie recommendations based on their preferences. The recommendation engine uses features such as genres, ratings, and actors to suggest movies that the users are likely to enjoy. 
 
 ---
 
@@ -21,7 +21,6 @@ This project implements a hybrid movie recommendation system using both content-
 The Movie Recommendation System provides movie suggestions using two main approaches:
 1. **Content-Based Filtering**: This method suggests movies similar to the ones the user has rated highly, using metadata such as genres, actors, and ratings.
 2. **Collaborative Filtering**: This method recommends movies based on the preferences of similar users (user-item interactions).
-3. **Hybrid Approach**: A combination of both content-based and collaborative filtering to provide more accurate recommendations.
 
 The system can recommend movies that are enjoyable for a group of users based on their collective movie preferences, including genre, actors, and ratings.
 
@@ -29,13 +28,11 @@ The system can recommend movies that are enjoyable for a group of users based on
 
 ## Technologies Used
 
-- **Python**
+- **Python**: Language
 - **Flask**: For creating the API that serves recommendations.
 - **Pandas**: For data manipulation and preprocessing.
 - **Scikit-learn**: For implementing content-based filtering using cosine similarity.
-- **Surprise**: For collaborative filtering with the SVD algorithm.
 - **MinMaxScaler**: For normalizing ratings.
-- **MultiLabelBinarizer**: For encoding movie genres.
 
 ---
 
@@ -54,11 +51,19 @@ The system can recommend movies that are enjoyable for a group of users based on
    ```
 
 3. **Download the Dataset**  
-   Place your `Movies.csv` file in the project directory. The CSV file should contain at least the following columns:
+   Place your `IMDB-Movie_data.csv` file in the project directory. The CSV file should contain at least the following columns:
    - `User`: User identifier
    - `Title`: Movie title
    - `Genres`: Comma-separated list of genres
-   - `Rating`: Rating provided by the user
+   - `Rating`: Rating provided by IMDB
+   - `Actors`: Comma-separated list of actors
+   - `Director`: Director of the movie
+   - `Year`: Release year of the movie
+   - `Description`: Brief description of the movie
+   - `Votes`: Number of votes
+   - `Metascore`: Metascore rating
+
+
 
 4. **Run the Flask API**  
    Start the Flask API by running the following command:
@@ -72,51 +77,26 @@ The system can recommend movies that are enjoyable for a group of users based on
 
 ## Usage
 
-To get movie recommendations, send a **POST request** to the `/recommend` endpoint with the following JSON body:
+Modify the user_input_movies list in the script to include the movie titles you like.
 
-```json
-{
-  "user_id": 1,
-  "movie_title": "The Matrix"
-}
-```
+Example 
 
-- `user_id`: The ID of the user requesting recommendations.
-- `movie_title`: The title of the movie that the user has watched or is interested in.
+user_input_movies = ["The Shawshank Redemption", "The Godfather"]
 
-### Example Response:
-```json
-[
-  {
-    "Title": "Inception",
-    "Hybrid_Score": 8.7
-  },
-  {
-    "Title": "Interstellar",
-    "Hybrid_Score": 8.5
-  }
-]
-```
+The program will output the top recommended movies based on the input.
 
-The response will contain a list of recommended movies sorted by the hybrid score, combining content-based and collaborative filtering.
+Recommended Movies:
+                      Title    Genre  Rating
+34  The Dark Knight Rises  Action     8.4
+48                Gladiator  Action     8.5
+27         The Dark Knight  Action     9.0
 
 ---
 
 ## API Documentation
 
-### Endpoint: `/recommend`
 
-- **Method**: POST
-- **Request Body**:
-  - `user_id`: Integer (User ID)
-  - `movie_title`: String (Movie title the user has watched or likes)
-  
-- **Response**:
-  A JSON array of recommended movies, each containing:
-  - `Title`: The movie title.
-  - `Hybrid_Score`: The combined score based on content and collaborative filtering.
 
----
 
 ## Contributing
 
