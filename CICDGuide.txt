@@ -5,3 +5,8 @@
 git push origin v0.1
 
 change version name to fit version and change " " to fit the change name
+
+python -m pip install pandas scikit-learn
+python main.py
+
+ do this to run program
