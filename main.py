@@ -11,7 +11,8 @@ def preprocess_data(file_path):
     movies_df.fillna('', inplace=True)
 
     # Convert numerical columns to numeric type (handle non-numeric)
-    numerical_features = ['Rating', 'Votes', 'Revenue (Millions)', 'Metascore', 'Runtime (Minutes)']
+    numerical_features = ['Rating', 'Votes', 'Revenue (Millions)', 'Metascore',
+                          'Runtime (Minutes)']
     scaler = MinMaxScaler()
 
     for feature in numerical_features:
@@ -60,7 +61,8 @@ def recommend_movies(user_movie_titles, movies_df, top_n=5):
     similar_movies_indices = [i for i in similar_movies_indices if i not in movie_indices]
 
     # Get top N recommendations
-    recommended_movies = movies_df.iloc[similar_movies_indices[:top_n]][['Title', 'Genre', 'Rating']]
+    recommended_movies = movies_df.iloc[similar_movies_indices
+    [:top_n]][['Title', 'Genre', 'Rating']]
 
     return recommended_movies
 
