@@ -21,11 +21,14 @@ def preprocess_data(file_path):
         movies_df[feature] = scaler.fit_transform(movies_df[[feature]])
 
     # Combine features into a "soup"
-    movies_df['soup'] = movies_df.apply(lambda x: ' '.join([
+    movies_df['soup'] = movies_df.apply(
+    lambda x: ' '.join([
         str(x['Genre']), str(x['Description']), str(x['Director']), str(x['Actors']),
         str(x['Year']), str(x['Rating']), str(x['Votes']), str(x['Revenue (Millions)']),
         str(x['Metascore']), str(x['Runtime (Minutes)'])
-    ]), axis=1)
+    ])
+, axis=1)
+
 
     # Standardize titles to lowercase for better matching
     movies_df['Title'] = movies_df['Title'].str.lower()
