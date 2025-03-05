@@ -1,0 +1,30 @@
+name: Deploy and Release
+
+on:
+  workflow_dispatch:  # This lets you trigger the workflow manually
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Create Tag
+      run: |
+        git tag -a v0.8 -m "Test 2"
+        git push origin v0.8
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}  # Use your PAT here
+
+    - name: Create GitHub Release
+      run: |
+        gh release create v0.8 --title "Version 0.8" --notes "This is release 0.8"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}  # Same PAT here
