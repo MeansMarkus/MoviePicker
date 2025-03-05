@@ -17,4 +17,3 @@ def print_random_movie(file_path='IMDB-Movie-Data.csv'):
 if __name__ == "__main__":
     print_random_movie()
 
-#test
