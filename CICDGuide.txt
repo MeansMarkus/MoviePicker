@@ -12,4 +12,6 @@ python main.py
 
  do this to run program
 
-#Ian's FINAL TEST 
+#Ian's test 3.0 
+
+#Jackson test 1.2
