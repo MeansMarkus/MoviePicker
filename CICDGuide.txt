@@ -1,6 +1,7 @@
 #Make sure an empty new Line always follows the last ine of code.
 
 #For CD make sure to look at previous version name for accurate naming and use below as an example
+Also, A commit must be made before doing version tag
  git tag -a v0.1 -m "Initial release"
 git push origin v0.1
 
