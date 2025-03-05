@@ -15,3 +15,15 @@ python main.py
 #Ian's test 3.0 
 
 #Jackson test 1.4
+
+Make a change to file
+git add fileName
+git commit -m "message"
+git status
+git push origin main
+if it says "Updates were rejected because the remote contains work that you do
+hint: not have locally" do 
+git push origin main
+then for the tag 
+git tag -a v0.7 -m "message"
+git push origin v0.7
