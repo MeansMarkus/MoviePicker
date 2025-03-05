@@ -11,3 +11,5 @@ python -m pip install pandas scikit-learn
 python main.py
 
  do this to run program
+
+Hi everyone I am Ian
