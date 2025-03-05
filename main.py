@@ -14,5 +14,11 @@ def print_random_movie(file_path='IMDB-Movie-Data.csv'):
     # Print the result
     print(f"Random Movie Pick: {random_movie}")
 
+    #get the rating of the random movie
+    random_movie_rating = movies_df.iloc[random_index]['Rating']
+
+    #print the rating
+    print(f"Rating: {random_movie_rating}")
+
 if __name__ == "__main__":
     print_random_movie()
