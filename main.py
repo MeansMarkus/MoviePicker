@@ -7,7 +7,7 @@ def print_random_movie(file_path='IMDB-Movie-Data.csv'):
 
     # Pick a random row
     random_index = random.randint(0, len(movies_df) - 1)
-
+    
     # Get the title of the random movie
     random_movie = movies_df.iloc[random_index]['Title']
 
