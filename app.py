@@ -1,8 +1,12 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_file
 import pandas as pd
 import random
 
 app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return send_file('index.html')  # Serves the front-end UI
 
 @app.route('/get-random-movie')
 def get_random_movie():
