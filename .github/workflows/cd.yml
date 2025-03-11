@@ -1,12 +1,12 @@
-name: CD - Release on Tag
+name: CD - Test and Deploy to GitHub Pages
 
 on:
   push:
     tags:
-      - 'v*'   # Runs only if the push is a tag like v1.0, v2.3 etc.
+      - 'v*'   # Deploy only on version tags like v1.0
 
 jobs:
-  release:
+  test-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,13 +22,18 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest  # Add pytest for testing
 
-    - name: Package code
-      run: zip -r release.zip .
+    - name: Run Tests
+      run: pytest tests/  # Runs your tests
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
       with:
-        files: release.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        path: ./  # Upload everything (or specify your content folder if needed)
+
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4
