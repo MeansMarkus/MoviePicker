@@ -1,0 +1,21 @@
+import unittest
+from username_validator import validate_username
+
+class TestUsernameValidation(unittest.TestCase):
+
+    def test_valid_username(self):
+        self.assertTrue(validate_username("validUser"))
+
+    def test_invalid_empty_username(self):
+        self.assertFalse(validate_username(""))
+
+    def test_boundary_valid_max_length(self):
+        long_username = "a" * 255
+        self.assertTrue(validate_username(long_username))
+
+    def test_edge_long_username(self):
+        long_username = "a" * 256
+        self.assertTrue(validate_username(long_username))
+
+    if __name__ == '__main__':
+        unittest.main()
