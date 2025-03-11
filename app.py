@@ -21,4 +21,7 @@ def get_random_movie():
     })
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 8080))  # Railway uses dynamic ports
+    app.run(host="0.0.0.0", port=port)
+
