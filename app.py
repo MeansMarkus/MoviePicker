@@ -14,12 +14,10 @@ def get_random_movie():
     random_index = random.randint(0, len(movies_df) - 1)
     random_movie = movies_df.iloc[random_index]['Title']
     random_movie_rating = movies_df.iloc[random_index]['Rating']
-    random_movie_director = movies_df.iloc[random_index]['Director']
 
     return jsonify({
         'title': random_movie,
         'rating': random_movie_rating
-        'director' : random_movie_director
     })
 
 if __name__ == "__main__":
