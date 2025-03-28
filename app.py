@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_file
+from flask import Flask, jsonify, send_file, request
 import pandas as pd
 import random
 
@@ -17,6 +17,26 @@ def get_random_movie():
 
     return jsonify({
         'title': random_movie,
+        'rating': random_movie_rating
+    })
+
+#Patrick's Code portion 
+@app.route('/recommend-movie', methods=['POST'])
+def recommend_movie():
+    favorite_movies = request.json('favorite_movies', [])
+
+    movies_df = pd.read_csv('IMDB-Movie-Data.csv')
+    recommended_movies = movies_df[~movies_df['Title'].isin(favorite_movies)]
+
+    if recommended_movies.empty:
+        return jsonify({'error': 'No movies to recommend'}), 404
+    
+    random_index = random.randint(0, len(recommended_movies) - 1)
+    random_movie = recommended_movies.iloc[random_index]['Title']
+    random_movie_rating = recommended_movies.iloc[random_index]['Rating']
+
+    return jsonify({
+        'recommended_movie': random_movie,
         'rating': random_movie_rating
     })
 
