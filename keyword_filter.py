@@ -12,7 +12,7 @@ def normalize_input(text):
     text = re.sub(r'[^\w\s]', '', text)  # remove punctuation/symbols
     return text.lower()  # convert to lowercase
 
-def checkKeyword(keyword, descriptions):
+def checkKeyword(keyword, movies):
     if not isinstance(keyword, str) or not keyword.strip():
         return False
 
@@ -30,36 +30,39 @@ def checkKeyword(keyword, descriptions):
                 pass
         input_word_pairs.append((word, numeral))
 
-    # iterate over each description
-    for desc in descriptions:
-        normalized_desc = normalize_input(desc)
-        desc_words = normalized_desc.split()
 
-        # compute numeric equivalents for description words
-        desc_num_words = set()
+    # iterate over each movie in the movies list
+    for movie in movies:
+        # combine movie name and description
+        combined_text = movie.get("name", "") + " " + movie.get("description", "")
+        normalized_text = normalize_input(combined_text)
+        text_words = normalized_text.split()
+
+        # compute numeric equivalents for text numbers
+        text_num_words = set()
         if use_w2n:
-            for d in desc_words:
+            for tw in text_words:
                 try:
-                    desc_num_words.add(str(w2n.word_to_num(d)))
+                    text_num_words.add(str(w2n.word_to_num(tw)))
                 except ValueError:
                     continue
 
-        # check if every input word (or numeral) is present
+        # check if every input word (numeral) is present in text_words
         all_matched = True
         for word, numeral in input_word_pairs:
             if numeral is not None:
-                # check if either numeral or spelled number is present in description
-                if not (any(word in d for d in desc_words) or (numeral in desc_num_words)):
+                # check if either numeral or spelled number is present
+                if not (any(word in tw for tw in text_words) or (numeral in text_num_words)):
                     all_matched = False
                     break
             else:
-                # non-numeric: require substring of description word
-                if not any(word in d for d in desc_words):
+                # non-numeric: check if substring of word
+                if not any(word in tw for tw in text_words):
                     all_matched = False
                     break
         if all_matched:
-            print(keyword, "found: {desc}")
+            print(keyword, "found in movie:", movie)
             return True
 
-    print(keyword, "not found, please try a less specific input")
+    print(keyword, "not found in any movie, please try a less specific input")
     return False
