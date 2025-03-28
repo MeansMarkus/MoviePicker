@@ -8,23 +8,23 @@ def getRating(rating):
     return rating
 
 class TestGetRating(unittest.TestCase):
-
+    
     def test_edge_case_values(self):
         with self.assertRaises(ValueError):
-            getRating(-1)
+            getRating(-1)  
         with self.assertRaises(ValueError):
-            getRating(11)
+            getRating(11)  
 
     def test_invalid_types(self):
         with self.assertRaises(ValueError):
-            getRating("string")
+            getRating("string")  
         with self.assertRaises(ValueError):
-            getRating([5])
+            getRating([5])  
 
     def test_valid_rating(self):
         for valid_rating in range(1, 11):
             self.assertEqual(getRating(valid_rating), valid_rating)
-        for valid_float in [1.5, 5.5, 9.9]:
+        for valid_float in [1.5, 5.5, 9.9]:  
             self.assertEqual(getRating(valid_float), valid_float)
 
 if __name__ == '__main__':
