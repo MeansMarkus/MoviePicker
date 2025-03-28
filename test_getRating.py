@@ -27,5 +27,5 @@ class TestGetRating(unittest.TestCase):
         for valid_float in [1.5, 5.5, 9.9]:
             self.assertEqual(getRating(valid_float), valid_float)
 
-if name == 'main':
+if __name__ == '__main__':
     unittest.main()
