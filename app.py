@@ -1,6 +1,6 @@
 import unittest
 import json
-
+import app
 import pandas as pd
 
 class TestMovieRandomEndpoint(unittest.TestCase):
