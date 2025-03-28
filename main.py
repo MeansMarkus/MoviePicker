@@ -23,5 +23,5 @@ def print_random_movie(file_path='IMDB-Movie-Data.csv'):
     print(f"Rating: {random_movie_rating}")
 
 if __name__ == "__main__":
-    print_random_movie()
-    #print_random_movie_by_genre() # -ian
+    #print_random_movie()
+    print_random_movie_by_genre() # -ian

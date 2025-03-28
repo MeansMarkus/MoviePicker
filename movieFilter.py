@@ -16,11 +16,11 @@ def print_random_movie_by_genre(file_path='IMDB-Movie-Data.csv'):
     # Finds a random movie and sees if it matches the given input for the genre
     random_movie = movies_df.iloc[random_index]['Title']
     random_movie_genre = movies_df[movies_df['Title'] == random_movie]['Genre'].values[0]
-    print("Genre:", random_movie_genre)
+    #print("Genre:", random_movie_genre)
     
     # creates an array holding the genres of the specific movie
     genreArray = random_movie_genre.split(",")
-    print(genreArray) - #testing to see what genres are in this
+    #print(genreArray) #testing to see what genres are in this
     
     # if the user's input genre is not one of the initial randomly generated movie's genres, enter this loop to find one until it does
     if user_genre not in genreArray:
