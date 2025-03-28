@@ -2,13 +2,13 @@ import unittest
 import tkinter as tk
 from tkinter import simpledialog
 
-# This method creates a pop up
+# This creates a pop up
 def ask_for_age():
-    # Creates a window pop up
+    # Creates the window pop up
     root = tk.Tk()
     root.withdraw()
 
-    # Asks for age of the user
+    # Asks for age of the user/parameters of possible answers
     age = simpledialog.askinteger("Movie Picker", "What is your age?", parent=root, minvalue=0, maxvalue=120)
 
     # Clean up
@@ -18,8 +18,10 @@ def ask_for_age():
 # Store user input in variable
 user_age = ask_for_age()
 
-if user_age < 18:
-    print(f"User is a minor.")
+
+# Output
+if user_age < 17:
+    print(f"User is under 17. No R rated movies allowed.")
 
 else:
     print(f"User is an adult.")
