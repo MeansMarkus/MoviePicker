@@ -1,7 +1,9 @@
 import pandas as pd
 import random
+from movieFilter import print_random_movie_by_genre # -ian
 
 def print_random_movie(file_path='IMDB-Movie-Data.csv'):
+    
     # Load the CSV into a DataFrame
     movies_df = pd.read_csv(file_path)
 
@@ -22,3 +24,4 @@ def print_random_movie(file_path='IMDB-Movie-Data.csv'):
 
 if __name__ == "__main__":
     print_random_movie()
+    #print_random_movie_by_genre() # -ian
