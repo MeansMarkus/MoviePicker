@@ -9,6 +9,10 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://web-production-93d43.up.railway.app"],
