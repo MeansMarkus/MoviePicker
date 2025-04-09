@@ -40,22 +40,35 @@ def get_movie_details(movie_id):
     return {}
 
 def get_recommendations_for_movie(movie_id):
-    url = f"{BASE_URL}/movie/{movie_id}/recommendations"
-    return _fetch_tmdb_list(url)
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations"
+    response = requests.get(url, headers=HEADERS)
+    print(f"RECOMMENDATIONS for {movie_id}:", response.status_code)
+    try:
+        data = response.json()
+        print(data)
+    except Exception as e:
+        print("Failed to decode JSON:", e)
+        return []
+    if response.status_code == 200:
+        return data.get("results", [])
+    return []
 
 def get_similar_movies(movie_id):
-    url = f"{BASE_URL}/movie/{movie_id}/similar"
-    return _fetch_tmdb_list(url)
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}/similar"
+    response = requests.get(url, headers=HEADERS)
+    print(f"SIMILAR for {movie_id}:", response.status_code)
+    try:
+        data = response.json()
+        print(data)
+    except Exception as e:
+        print("Failed to decode JSON:", e)
+        return []
+    if response.status_code == 200:
+        return data.get("results", [])
+    return []
 
 def _fetch_tmdb_list(url):
     response = requests.get(url, headers=HEADERS)
     if response.status_code == 200:
         return response.json().get("results", [])
     return []
-
-def get_recommendations_for_movie(movie_id): #debug
-    print(f"Fetching recommendations for {movie_id}")
-    ...
-def get_similar_movies(movie_id): #debug
-    print(f"Fetching similar for {movie_id}")
-    ...

@@ -40,8 +40,14 @@ def recommend_movies(data: MovieListRequest):
 
     movie_ids = [search_movie(title) for title in all_titles]
     movie_ids = list(set(filter(None, movie_ids)))
+    
+    print("Movie IDs:", movie_ids) #debug
+
 
     recommended_ids = get_combined_recommendations(movie_ids)
+    
+    print("Recommended IDs:", recommended_ids) #debug
+
 
     raw_recommendations = [get_movie_details(mid) for mid in recommended_ids[:10]]
 
@@ -53,8 +59,5 @@ def recommend_movies(data: MovieListRequest):
         }
         for movie in raw_recommendations if movie
     ]
-
-    print("Movie IDs:", movie_ids) #debug
-    print("Recommendations:", recommended_ids) #debug
 
     return {"recommendations": recommendations}
