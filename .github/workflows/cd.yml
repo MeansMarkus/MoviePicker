@@ -1,14 +1,9 @@
-name: CD - Deploy to Railway and GitHub Pages
+name: CD - Deploy to Railway
 
 on:
   push:
     tags:
-      - 'v*'
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+      - 'v*'  # Triggers on version tags like v1.0.0
 
 jobs:
   deploy:
@@ -28,19 +23,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # === RAILWAY DEPLOYMENT ===
     - name: Deploy to Railway
       run: |
         curl -X POST ${{ secrets.RAILWAY_DEPLOY_HOOK }}
-
-    # === GITHUB PAGES DEPLOYMENT ===
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
-
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./  # Or specify your content folder if needed
-
-    - name: Deploy to GitHub Pages
-      uses: actions/deploy-pages@v4
