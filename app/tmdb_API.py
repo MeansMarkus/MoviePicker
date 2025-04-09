@@ -52,3 +52,10 @@ def _fetch_tmdb_list(url):
     if response.status_code == 200:
         return response.json().get("results", [])
     return []
+
+def get_recommendations_for_movie(movie_id): #debug
+    print(f"Fetching recommendations for {movie_id}")
+    ...
+def get_similar_movies(movie_id): #debug
+    print(f"Fetching similar for {movie_id}")
+    ...

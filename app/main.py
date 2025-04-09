@@ -54,4 +54,7 @@ def recommend_movies(data: MovieListRequest):
         for movie in raw_recommendations if movie
     ]
 
+    print("Movie IDs:", movie_ids) #debug
+    print("Recommendations:", recommended_ids) #debug
+
     return {"recommendations": recommendations}
