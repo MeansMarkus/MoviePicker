@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movie Match & Recommend</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+    textarea, input[type=text] {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .section {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 Movie Match & Recommend</h1>
+
+  <form id="recommendation-form">
+    <div id="users-container"></div>
+    <button type="button" onclick="addUser()">➕ Add Another User</button>
+    <br/>
+    <button type="submit">Get Recommendations</button>
+  </form>
+
+  <div class="section" id="results" style="display:none">
+    <h3>🎯 Recommendations</h3>
+    <ul id="recommendation-list"></ul>
+  </div>
+
+  <script>
+    let userCount = 0;
+
+    function addUser() {
+      userCount++;
+      const container = document.getElementById("users-container");
+
+      const section = document.createElement("div");
+      section.className = "section";
+      section.innerHTML = `
+        <h3>User ${userCount} Input</h3>
+        <label>Paste List URL (IMDb / Letterboxd / TMDB)</label>
+        <input type="text" id="user${userCount}-url" placeholder="https://letterboxd.com/user/list/...">
+        <label>Or Type Movies (one per line)</label>
+        <textarea id="user${userCount}-manual" rows="5" placeholder="Inception&#10;The Matrix&#10;Tenet"></textarea>
+      `;
+      container.appendChild(section);
+    }
+
+    // Add the first two users by default
+    addUser();
+    addUser();
+
+    document.getElementById("recommendation-form").addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const users = [];
+      for (let i = 1; i <= userCount; i++) {
+        const url = document.getElementById(`user${i}-url`).value.trim();
+        const manual = document.getElementById(`user${i}-manual`).value.trim();
+        if (url || manual) {
+          users.push(url || manual);
+        }
+      }
+
+      const response = await fetch("/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ users })
+      });
+
+      const data = await response.json();
+      const resultsDiv = document.getElementById("results");
+      const list = document.getElementById("recommendation-list");
+      list.innerHTML = "";
+
+      if (data.recommendations && data.recommendations.length > 0) {
+        resultsDiv.style.display = "block";
+        data.recommendations.forEach(movie => {
+          const li = document.createElement("li");
+          li.textContent = `${movie.title} (${movie.release_date?.split("-")[0] || "Unknown"})`;
+          list.appendChild(li);
+        });
+      } else {
+        resultsDiv.style.display = "block";
+        list.innerHTML = "<li>No recommendations found.</li>";
+      }
+    });
+  </script>
+</body>
+</html>

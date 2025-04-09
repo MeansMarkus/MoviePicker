@@ -1,4 +1,9 @@
 pandas
 word2number
 flask
-
+fastapi
+uvicorn
+requests
+python-dotenv
+beautifulsoup4
+lxml
