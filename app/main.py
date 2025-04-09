@@ -42,5 +42,16 @@ def recommend_movies(data: MovieListRequest):
     movie_ids = list(set(filter(None, movie_ids)))
 
     recommended_ids = get_combined_recommendations(movie_ids)
-    recommendations = [get_movie_details(mid) for mid in recommended_ids[:10]]
+
+    raw_recommendations = [get_movie_details(mid) for mid in recommended_ids[:10]]
+
+    recommendations = [
+        {
+            "title": movie.get("title"),
+            "release_date": movie.get("release_date"),
+            "summary": movie.get("overview")
+        }
+        for movie in raw_recommendations if movie
+    ]
+
     return {"recommendations": recommendations}

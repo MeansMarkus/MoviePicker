@@ -1,7 +1,7 @@
 from collections import Counter
 from app.tmdb_API import get_recommendations_for_movie, get_similar_movies
 
-def get_combined_recommendations(movie_ids):
+def get_combined_recs(movie_ids):
     recommended = []
     for movie_id in movie_ids:
         recs = get_recommendations_for_movie(movie_id)
