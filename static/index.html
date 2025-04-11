@@ -125,12 +125,28 @@
 
         data.overlap.forEach(movie => {
             const li = document.createElement("li");
-            li.innerHTML = `
-            <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
-            <em>${movie.summary || "No summary available."}</em><br>
-            <strong>Rating:</strong> ${movie.rating || "N/A"}
-            `;
             li.style.marginBottom = "1rem";
+
+            const titleDiv = document.createElement("div");
+            titleDiv.style.cursor = "pointer";
+            titleDiv.innerHTML = `
+                <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
+                <strong>Rating:</strong> ${movie.rating || "N/A"}
+            `;
+
+            const descriptionDiv = document.createElement("div");
+            descriptionDiv.style.display = "none";
+            descriptionDiv.style.marginTop = "0.5rem";
+            descriptionDiv.innerHTML = `
+                <em>${movie.summary || "No summary available."}</em>
+            `;
+
+            titleDiv.addEventListener("click", () => {
+                descriptionDiv.style.display = descriptionDiv.style.display === "none" ? "block" : "none";
+            });
+
+            li.appendChild(titleDiv);
+            li.appendChild(descriptionDiv);
             list.appendChild(li);
         });
       }
@@ -143,12 +159,28 @@
 
         data.recommendations.forEach(movie => {
             const li = document.createElement("li");
-            li.innerHTML = `
-            <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
-            <em>${movie.summary || "No summary available."}</em><br>
-            <strong>Rating:</strong> ${movie.rating || "N/A"}
-            `;
             li.style.marginBottom = "1rem";
+
+            const titleDiv = document.createElement("div");
+            titleDiv.style.cursor = "pointer";
+            titleDiv.innerHTML = `
+                <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
+                <strong>Rating:</strong> ${movie.rating || "N/A"}
+            `;
+
+            const descriptionDiv = document.createElement("div");
+            descriptionDiv.style.display = "none";
+            descriptionDiv.style.marginTop = "0.5rem";
+            descriptionDiv.innerHTML = `
+                <em>${movie.summary || "No summary available."}</em>
+            `;
+
+            titleDiv.addEventListener("click", () => {
+                descriptionDiv.style.display = descriptionDiv.style.display === "none" ? "block" : "none";
+            });
+
+            li.appendChild(titleDiv);
+            li.appendChild(descriptionDiv);
             list.appendChild(li);
          });
       }
