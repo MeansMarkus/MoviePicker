@@ -126,6 +126,9 @@
         data.overlap.forEach(movie => {
             const li = document.createElement("li");
             li.style.marginBottom = "1rem";
+            li.style.display = "flex";
+            li.style.justifyContent = "space-between";
+            li.style.alignItems = "center";
 
             const titleDiv = document.createElement("div");
             titleDiv.innerHTML = `
@@ -135,16 +138,20 @@
 
             const dropdownButton = document.createElement("button");
             dropdownButton.textContent = "▼";
-            dropdownButton.style.marginLeft = "10px";
             dropdownButton.style.cursor = "pointer";
             dropdownButton.style.background = "none";
             dropdownButton.style.border = "none";
             dropdownButton.style.color = "#007bff";
             dropdownButton.style.fontSize = "1rem";
+            dropdownButton.style.marginLeft = "auto";
 
             const descriptionDiv = document.createElement("div");
             descriptionDiv.style.display = "none";
             descriptionDiv.style.marginTop = "0.5rem";
+            descriptionDiv.style.padding = "0.5rem";
+            descriptionDiv.style.backgroundColor = "#1e1e1e";
+            descriptionDiv.style.borderRadius = "4px";
+            descriptionDiv.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.5)";
             descriptionDiv.innerHTML = `
                 <em>${movie.summary || "No summary available."}</em>
             `;
