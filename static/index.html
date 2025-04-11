@@ -118,7 +118,7 @@
       resultsDiv.style.display = "block";
 
       // Overlap Section
-        if (data.overlap && data.overlap.length > 0) {
+      if (data.overlap && data.overlap.length > 0) {
         const overlapHeader = document.createElement("h4");
         overlapHeader.textContent = "Overlap Movies";
         list.appendChild(overlapHeader);
@@ -127,15 +127,16 @@
             const li = document.createElement("li");
             li.innerHTML = `
             <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
-            <em>${movie.summary || "No summary available."}</em>
+            <em>${movie.summary || "No summary available."}</em><br>
+            <strong>Rating:</strong> ${movie.rating || "N/A"}
             `;
             li.style.marginBottom = "1rem";
             list.appendChild(li);
         });
-        }
+      }
 
       // Recommendations Section
-        if (data.recommendations && data.recommendations.length > 0) {
+      if (data.recommendations && data.recommendations.length > 0) {
         const recHeader = document.createElement("h4");
         recHeader.textContent = "Recommendations";
         list.appendChild(recHeader);
@@ -144,17 +145,18 @@
             const li = document.createElement("li");
             li.innerHTML = `
             <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
-            <em>${movie.summary || "No summary available."}</em>
+            <em>${movie.summary || "No summary available."}</em><br>
+            <strong>Rating:</strong> ${movie.rating || "N/A"}
             `;
             li.style.marginBottom = "1rem";
             list.appendChild(li);
          });
-        }
+      }
 
       // Fallback message
-        if ((!data.recommendations || data.recommendations.length === 0) && (!data.overlap || data.overlap.length === 0)) {
+      if ((!data.recommendations || data.recommendations.length === 0) && (!data.overlap || data.overlap.length === 0)) {
         list.innerHTML = "<li>No recommendations found.</li>";
-        }
+      }
     });
   </script>
 </body>
