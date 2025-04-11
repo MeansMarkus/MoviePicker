@@ -128,11 +128,19 @@
             li.style.marginBottom = "1rem";
 
             const titleDiv = document.createElement("div");
-            titleDiv.style.cursor = "pointer";
             titleDiv.innerHTML = `
                 <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
                 <strong>Rating:</strong> ${movie.rating || "N/A"}
             `;
+
+            const dropdownButton = document.createElement("button");
+            dropdownButton.textContent = "▼";
+            dropdownButton.style.marginLeft = "10px";
+            dropdownButton.style.cursor = "pointer";
+            dropdownButton.style.background = "none";
+            dropdownButton.style.border = "none";
+            dropdownButton.style.color = "#007bff";
+            dropdownButton.style.fontSize = "1rem";
 
             const descriptionDiv = document.createElement("div");
             descriptionDiv.style.display = "none";
@@ -141,11 +149,14 @@
                 <em>${movie.summary || "No summary available."}</em>
             `;
 
-            titleDiv.addEventListener("click", () => {
-                descriptionDiv.style.display = descriptionDiv.style.display === "none" ? "block" : "none";
+            dropdownButton.addEventListener("click", () => {
+                const isHidden = descriptionDiv.style.display === "none";
+                descriptionDiv.style.display = isHidden ? "block" : "none";
+                dropdownButton.textContent = isHidden ? "▲" : "▼";
             });
 
             li.appendChild(titleDiv);
+            li.appendChild(dropdownButton);
             li.appendChild(descriptionDiv);
             list.appendChild(li);
         });
@@ -162,11 +173,19 @@
             li.style.marginBottom = "1rem";
 
             const titleDiv = document.createElement("div");
-            titleDiv.style.cursor = "pointer";
             titleDiv.innerHTML = `
                 <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
                 <strong>Rating:</strong> ${movie.rating || "N/A"}
             `;
+
+            const dropdownButton = document.createElement("button");
+            dropdownButton.textContent = "▼";
+            dropdownButton.style.marginLeft = "10px";
+            dropdownButton.style.cursor = "pointer";
+            dropdownButton.style.background = "none";
+            dropdownButton.style.border = "none";
+            dropdownButton.style.color = "#007bff";
+            dropdownButton.style.fontSize = "1rem";
 
             const descriptionDiv = document.createElement("div");
             descriptionDiv.style.display = "none";
@@ -175,11 +194,14 @@
                 <em>${movie.summary || "No summary available."}</em>
             `;
 
-            titleDiv.addEventListener("click", () => {
-                descriptionDiv.style.display = descriptionDiv.style.display === "none" ? "block" : "none";
+            dropdownButton.addEventListener("click", () => {
+                const isHidden = descriptionDiv.style.display === "none";
+                descriptionDiv.style.display = isHidden ? "block" : "none";
+                dropdownButton.textContent = isHidden ? "▲" : "▼";
             });
 
             li.appendChild(titleDiv);
+            li.appendChild(dropdownButton);
             li.appendChild(descriptionDiv);
             list.appendChild(li);
          });
