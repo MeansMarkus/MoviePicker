@@ -52,9 +52,11 @@ def recommend_movies(data: MovieListRequest):
     raw_overlap = [get_movie_details(mid) for mid in overlap_ids]
     overlap = [
         {
+            "rating": movie.get("vote_average"),
             "title": movie.get("title"),
             "release_date": movie.get("release_date"),
             "summary": movie.get("overview")
+            
         }
         for movie in raw_overlap if movie
     ]
@@ -63,6 +65,7 @@ def recommend_movies(data: MovieListRequest):
 
     recommendations = [
         {
+            "rating": movie.get("vote_average"),
             "title": movie.get("title"),
             "release_date": movie.get("release_date"),
             "summary": movie.get("overview")
