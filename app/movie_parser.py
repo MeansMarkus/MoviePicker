@@ -1,6 +1,14 @@
 import re
+import os
 import requests
 from bs4 import BeautifulSoup
+from app.tmdb_API import _fetch_tmdb_list, BASE_URL
+import json
+
+API_KEY = os.getenv("TMDB_API_KEY")
+if not API_KEY:
+    raise RuntimeError("TMDB_API_KEY environment variable is not set")
+
 
 def parse_input_list(input_data):
     """
@@ -16,7 +24,8 @@ def parse_input_list(input_data):
         if '\n' in input_data or ',' in input_data:
             lines = re.split(r'\n|,', input_data)
             return [line.strip() for line in lines if line.strip()]
-        
+
+        # detect URL types
         if "imdb.com/list" in input_data:
             return parse_imdb_list(input_data)
         elif "letterboxd.com" in input_data:
@@ -25,62 +34,97 @@ def parse_input_list(input_data):
             return parse_tmdb_list(input_data)
     return []
 
-# ------------------ IMDb List Parsing ------------------
 
 def parse_imdb_list(url):
     """
-    Parses an IMDb list (e.g., https://www.imdb.com/list/lsXXXXXXXXXX/)
+    Scrape all pages of an IMDb list and return movie titles.
     """
     headers = {'User-Agent': 'Mozilla/5.0'}
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-
+    # strip off query params
+    base = re.split(r'\?', url, 1)[0]
     titles = []
-    for div in soup.find_all("div", class_="lister-item-content"):
-        header = div.find("h3", class_="lister-item-header")
-        if header:
-            title_tag = header.find("a")
-            if title_tag:
-                titles.append(title_tag.text.strip())
+    next_url = base
+
+    while next_url:
+        resp = requests.get(next_url, headers=headers)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, 'html.parser')
+
+        # 1) Try JSON‑LD (new IMDb embeds the whole list here)
+        ld = soup.find('script', {'type': 'application/ld+json'})
+        if ld:
+            data = json.loads(ld.string)
+            if data.get('@type') == 'ItemList':
+                for el in data.get('itemListElement', []):
+                    name = el.get('item', {}).get('name')
+                    if name:
+                        titles.append(name.strip())
+                # JSON‑LD covers all pages in one go, so we can break
+                break
+
+        # 2) Fallback to legacy HTML scraping
+        for div in soup.select('div.lister-item-content'):
+            hdr = div.find('h3', class_='lister-item-header')
+            if hdr and hdr.a and hdr.a.text:
+                titles.append(hdr.a.text.strip())
+
+        # 3) Paginate if needed
+        nxt = soup.find('a', class_='lister-page-next')
+        if nxt and nxt.get('href'):
+            next_url = 'https://www.imdb.com' + nxt['href']
+        else:
+            break
+
     return titles
 
-# ------------------ Letterboxd List Parsing ------------------
 
-def parse_letterboxd_list(url):
+def parse_letterboxd_list(url: str) -> list[str]:
     """
-    Parses a Letterboxd list (e.g., https://letterboxd.com/username/list/listname/)
+    Scrape only movie titles from a Letterboxd list URL, across all pages.
     """
+    titles: list[str] = []
+    # Ensure URL ends with slash
+    next_page = url if url.endswith('/') else url + '/'
     headers = {'User-Agent': 'Mozilla/5.0'}
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
 
-    titles = []
-    for film_detail in soup.find_all("div", class_="film-detail-content"):
-        title_tag = film_detail.find("a", class_="title")
-        if title_tag:
-            titles.append(title_tag.text.strip())
-    if not titles:
-        # Fallback for alternate layout
-        for film in soup.find_all("div", class_="film-poster"):
-            alt = film.get("data-film-name")
-            if alt:
-                titles.append(alt.strip())
+    while True:
+        resp = requests.get(next_page, headers=headers)
+        if resp.status_code != 200:
+            break
+        soup = BeautifulSoup(resp.content, 'lxml')
+        # Poster grid for cast/crew lists, poster-list for standard lists
+        container = soup.find('ul', class_='poster-list') or soup.find('div', class_='poster-grid')
+        if not container:
+            break
+        for li in container.find_all('li'):
+            img = li.find('img')
+            if img and img.has_attr('alt'):
+                titles.append(img['alt'].strip())
+        # Next page link
+        nxt = soup.find('a', class_='next')
+        if not nxt or not nxt.get('href'):
+            break
+        next_page = BASE_URL + nxt['href']
+
     return titles
 
-# ------------------ TMDB List Parsing (Basic) ------------------
-
-def parse_tmdb_list(url):
+def parse_tmdb_list(list_url: str) -> list[str]:
     """
-    Parses a TMDB list (e.g., https://www.themoviedb.org/list/123456)
-    WARNING: This version scrapes HTML, since no public TMDB list API is exposed
+    Fetch a TMDB list via the TMDB API and return movie titles.
     """
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    m = re.search(r'/list/(\d+)', list_url)
+    if not m:
+        raise ValueError(f"Couldn't find a list ID in {list_url}")
+    list_id = m.group(1)
 
-    titles = []
-    for div in soup.find_all("div", class_="item"):
-        title = div.find("a", class_="title")
-        if title:
-            titles.append(title.text.strip())
-    return titles
+    resp = requests.get(
+        f"{BASE_URL}/list/{list_id}",
+        headers={"Authorization": f"Bearer {API_KEY}"},
+        params={"language": "en‑US"}
+    )
+    resp.raise_for_status()
+    data = resp.json()
+
+    return [
+        item.get("title", "").strip() for item in data.get("items", []) if item.get("title")
+    ]
