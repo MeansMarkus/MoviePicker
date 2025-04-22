@@ -35,6 +35,19 @@
     button:hover {
       background-color: #0056b3;
     }
+    button.toggle {
+    padding: 0.2rem 0.4rem;    
+    font-size: 0.8rem;        
+    background: none;         
+    border: none;             
+    color: #007bff;           
+    cursor: pointer;           
+    margin-top: 0;             
+    margin-left: 0.5rem;       
+    }
+    button.toggle:hover {
+      background: none;         
+    }
     .section {
       background: #1e1e1e;
       padding: 1rem;
@@ -59,14 +72,21 @@
 
   <form id="recommendation-form">
     <div id="users-container"></div>
-    <button type="button" onclick="addUser()">➕ Add Another User</button>
+    <button type="button" id="add-user-btn">➕ Add Another User</button>
     <br/>
     <button type="submit">Get Recommendations</button>
   </form>
 
   <div class="section" id="results" style="display:none">
-    <h3>Recommendations</h3>
-    <ul id="recommendation-list"></ul>
+    <div id="overlap-section" class="section" style="display:none">
+      <h3>Overlap Movies</h3>
+      <ul id="overlap-list"></ul>
+    </div>
+
+    <div id="recommendation-section" class="section" style="display:none">
+      <h3>Recommendations</h3>
+      <ul id="recommendation-list"></ul>
+    </div>
   </div>
 
   <script>
@@ -75,11 +95,10 @@
     function addUser() {
       userCount++;
       const container = document.getElementById("users-container");
-
       const section = document.createElement("div");
       section.className = "section";
       section.innerHTML = `
-        <h3>User ${userCount} Input</h3>
+        <h3>User ${userCount}</h3>
         <label>Paste List URL (IMDb / Letterboxd / TMDB)</label>
         <input type="text" id="user${userCount}-url" placeholder="https://letterboxd.com/user/list/...">
         <label>Or Type Movies (one per line)</label>
@@ -88,7 +107,8 @@
       container.appendChild(section);
     }
 
-    // Add the first two users by default
+    // Set up "Add Another User" button and seed two users by default
+    document.getElementById("add-user-btn").addEventListener("click", addUser);
     addUser();
     addUser();
 
@@ -97,119 +117,81 @@
 
       const users = [];
       for (let i = 1; i <= userCount; i++) {
-        const url = document.getElementById(`user${i}-url`).value.trim();
+        const url    = document.getElementById(`user${i}-url`).value.trim();
         const manual = document.getElementById(`user${i}-manual`).value.trim();
-        if (url || manual) {
-          users.push(url || manual);
-        }
+        if (url || manual) users.push(url || manual);
       }
 
-      const response = await fetch("/recommendations", {
+      const resp = await fetch("/recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ users })
       });
+      const data = await resp.json();
 
-      const data = await response.json();
-      const resultsDiv = document.getElementById("results");
-      const list = document.getElementById("recommendation-list");
-      list.innerHTML = "";
-      
+      const resultsDiv  = document.getElementById("results");
+      const overlapSec  = document.getElementById("overlap-section");
+      const overlapList = document.getElementById("overlap-list");
+      const recSec      = document.getElementById("recommendation-section");
+      const recList     = document.getElementById("recommendation-list");
+
+      // clear previous
+      overlapList.innerHTML = "";
+      recList.innerHTML     = "";
+
       resultsDiv.style.display = "block";
 
-      // Overlap Section
-      if (data.overlap && data.overlap.length > 0) {
-        const overlapHeader = document.createElement("h4");
-        overlapHeader.textContent = "Overlap Movies";
-        list.appendChild(overlapHeader);
-
-        data.overlap.forEach(movie => {
-            const li = document.createElement("li");
-            li.style.marginBottom = "1rem";
-
-            const titleDiv = document.createElement("div");
-            titleDiv.innerHTML = `
-                <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
-                <strong>Rating:</strong> ${movie.rating || "N/A"}
-            `;
-
-            const dropdownButton = document.createElement("button");
-            dropdownButton.textContent = "▼";
-            dropdownButton.style.marginLeft = "10px";
-            dropdownButton.style.cursor = "pointer";
-            dropdownButton.style.background = "none";
-            dropdownButton.style.border = "none";
-            dropdownButton.style.color = "#007bff";
-            dropdownButton.style.fontSize = "1rem";
-
-            const descriptionDiv = document.createElement("div");
-            descriptionDiv.style.display = "none";
-            descriptionDiv.style.marginTop = "0.5rem";
-            descriptionDiv.innerHTML = `
-                <em>${movie.summary || "No summary available."}</em>
-            `;
-
-            dropdownButton.addEventListener("click", () => {
-                const isHidden = descriptionDiv.style.display === "none";
-                descriptionDiv.style.display = isHidden ? "block" : "none";
-                dropdownButton.textContent = isHidden ? "▲" : "▼";
-            });
-
-            li.appendChild(titleDiv);
-            li.appendChild(dropdownButton);
-            li.appendChild(descriptionDiv);
-            list.appendChild(li);
+      // Overlap Movies
+      if (data.overlap && data.overlap.length) {
+        overlapSec.style.display = "block";
+        data.overlap.forEach(m => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"}) —
+            Rating: ${m.rating||"N/A"}
+            <button class="toggle">▼</button>
+            <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+          `;
+          li.querySelector(".toggle").onclick = e => {
+            const summ = li.querySelector(".summary");
+            const show = summ.style.display === "none";
+            summ.style.display = show ? "block" : "none";
+            e.target.textContent = show ? "▲" : "▼";
+          };
+          overlapList.appendChild(li);
         });
+      } else {
+        overlapSec.style.display = "none";
       }
 
-      // Recommendations Section
-      if (data.recommendations && data.recommendations.length > 0) {
-        const recHeader = document.createElement("h4");
-        recHeader.textContent = "Recommendations";
-        list.appendChild(recHeader);
-
-        data.recommendations.forEach(movie => {
-            const li = document.createElement("li");
-            li.style.marginBottom = "1rem";
-
-            const titleDiv = document.createElement("div");
-            titleDiv.innerHTML = `
-                <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "Unknown"})<br>
-                <strong>Rating:</strong> ${movie.rating || "N/A"}
-            `;
-
-            const dropdownButton = document.createElement("button");
-            dropdownButton.textContent = "▼";
-            dropdownButton.style.marginLeft = "10px";
-            dropdownButton.style.cursor = "pointer";
-            dropdownButton.style.background = "none";
-            dropdownButton.style.border = "none";
-            dropdownButton.style.color = "#007bff";
-            dropdownButton.style.fontSize = "1rem";
-
-            const descriptionDiv = document.createElement("div");
-            descriptionDiv.style.display = "none";
-            descriptionDiv.style.marginTop = "0.5rem";
-            descriptionDiv.innerHTML = `
-                <em>${movie.summary || "No summary available."}</em>
-            `;
-
-            dropdownButton.addEventListener("click", () => {
-                const isHidden = descriptionDiv.style.display === "none";
-                descriptionDiv.style.display = isHidden ? "block" : "none";
-                dropdownButton.textContent = isHidden ? "▲" : "▼";
-            });
-
-            li.appendChild(titleDiv);
-            li.appendChild(dropdownButton);
-            li.appendChild(descriptionDiv);
-            list.appendChild(li);
-         });
+      // Recommendations
+      if (data.recommendations && data.recommendations.length) {
+        recSec.style.display = "block";
+        data.recommendations.forEach(m => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"}) —
+            Rating: ${m.rating||"N/A"}
+            <button class="toggle">▼</button>
+            <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+          `;
+          li.querySelector(".toggle").onclick = e => {
+            const summ = li.querySelector(".summary");
+            const show = summ.style.display === "none";
+            summ.style.display = show ? "block" : "none";
+            e.target.textContent = show ? "▲" : "▼";
+          };
+          recList.appendChild(li);
+        });
+      } else {
+        recSec.style.display = "none";
       }
 
-      // Fallback message
-      if ((!data.recommendations || data.recommendations.length === 0) && (!data.overlap || data.overlap.length === 0)) {
-        list.innerHTML = "<li>No recommendations found.</li>";
+      // Fallback if no results at all
+      if ((!data.overlap || data.overlap.length === 0) &&
+          (!data.recommendations || data.recommendations.length === 0)) {
+        recSec.style.display = "block";
+        recList.innerHTML = "<li>No overlap or recommendations found.</li>";
       }
     });
   </script>
