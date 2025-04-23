@@ -1,9 +1,10 @@
+from collections import Counter
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from collections import Counter
+from app.filter_functions import word_filter
 
 from app.movie_parser import parse_input_list
 from app.tmdb_API import (
@@ -36,6 +37,8 @@ def serve_frontend():
 
 class MovieListRequest(BaseModel):
     users: list[str]
+    include: list[str] = []  
+    exclude: list[str] = []  
 
 @app.post("/recommendations")
 def recommend_movies(data: MovieListRequest):
@@ -108,6 +111,10 @@ def recommend_movies(data: MovieListRequest):
         }
         for m in raw_recs if m
     ]
+
+    # apply word_filter if user provided include/exclude terms
+    if data.include or data.exclude:
+        recommendations = word_filter(recommendations, data.include, data.exclude)
 
     return {
         "overlap": overlap,

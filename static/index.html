@@ -35,7 +35,7 @@
     button:hover {
       background-color: #0056b3;
     }
-    button.toggle {
+    button.summary-toggle {
     padding: 0.2rem 0.4rem;    
     font-size: 0.8rem;        
     background: none;         
@@ -45,7 +45,7 @@
     margin-top: 0;             
     margin-left: 0.5rem;       
     }
-    button.toggle:hover {
+    button.summary-toggle:hover {
       background: none;         
     }
     .section {
@@ -67,6 +67,7 @@
     }
   </style>
 </head>
+
 <body>
   <h1>Movie Recommender</h1>
 
@@ -75,6 +76,13 @@
     <button type="button" id="add-user-btn">➕ Add Another User</button>
     <br/>
     <button type="submit">Get Recommendations</button>
+    <button type="button" id="filter-toggle" class="filter-toggle">Filter Results</button>
+    <div id="filter-box" class="section" style="display:none">
+      <label>Include Words (comma separated)</label>
+      <input type="text" id="filter-include" placeholder="Superheroes, Magic">
+      <label>Exclude Words (comma separated)</label>
+      <input type="text" id="filter-exclude" placeholder="Superheroes, Magic">
+    </div>
   </form>
 
   <div class="section" id="results" style="display:none">
@@ -122,10 +130,15 @@
         if (url || manual) users.push(url || manual);
       }
 
+      const includeText = document.getElementById("filter-include").value.trim();
+      const excludeText = document.getElementById("filter-exclude").value.trim();
+      const include = includeText ? includeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+      const exclude = excludeText ? excludeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+      const payload = { users, include, exclude };
       const resp = await fetch("/recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ users })
+        body: JSON.stringify(payload)
       });
       const data = await resp.json();
 
@@ -149,10 +162,11 @@
           li.innerHTML = `
             <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"}) —
             Rating: ${m.rating||"N/A"}
-            <button class="toggle">▼</button>
+            <button class="summary-toggle">▼</button>
             <div class="summary" style="display:none">${m.summary||"No summary."}</div>
           `;
-          li.querySelector(".toggle").onclick = e => {
+          const btn = li.querySelector(".summary-toggle");
+          btn.onclick = e => {
             const summ = li.querySelector(".summary");
             const show = summ.style.display === "none";
             summ.style.display = show ? "block" : "none";
@@ -172,10 +186,11 @@
           li.innerHTML = `
             <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"}) —
             Rating: ${m.rating||"N/A"}
-            <button class="toggle">▼</button>
+            <button class="summary-toggle">▼</button>
             <div class="summary" style="display:none">${m.summary||"No summary."}</div>
           `;
-          li.querySelector(".toggle").onclick = e => {
+          const btn = li.querySelector(".summary-toggle");
+          btn.onclick = e => {
             const summ = li.querySelector(".summary");
             const show = summ.style.display === "none";
             summ.style.display = show ? "block" : "none";
@@ -193,6 +208,13 @@
         recSec.style.display = "block";
         recList.innerHTML = "<li>No overlap or recommendations found.</li>";
       }
+    });
+
+    // filter toggle logic
+    document.getElementById("filter-toggle").addEventListener("click", () => {
+      const box = document.getElementById("filter-box");
+      const visible = box.style.display === "block";
+      box.style.display = visible ? "none" : "block";
     });
   </script>
 </body>
