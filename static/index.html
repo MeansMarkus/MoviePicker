@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Movie Recommender</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css"
+    rel="stylesheet"
+  >
   <style>
     body {
       font-family: sans-serif;
@@ -26,27 +30,30 @@
       padding: 0.7rem 1.2rem;
       font-size: 1rem;
       margin-top: 1rem;
-      background-color: #007bff;
+      background-color: #3FB8AF;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
     button:hover {
-      background-color: #0056b3;
+      background-color: #30928c;
     }
     button.summary-toggle {
     padding: 0.2rem 0.4rem;    
     font-size: 0.8rem;        
     background: none;         
     border: none;             
-    color: #007bff;           
+    color: #3FB8AF;           
     cursor: pointer;           
     margin-top: 0;             
     margin-left: 0.5rem;       
     }
     button.summary-toggle:hover {
       background: none;         
+    }
+    input[type="checkbox"] {
+      accent-color: #3FB8AF;
     }
     .section {
       background: #1e1e1e;
@@ -65,6 +72,32 @@
       font-size: 0.9rem;
       color: #bbbbbb;
     }
+    .content-rating {
+      font-size: 0.9rem;
+      color: #bbbbbb;
+      margin-top: 0.2rem;
+      margin-bottom: 0.8rem;
+    }
+    #filter-exclude {
+      margin-bottom: 1rem;
+    }
+    #filter-content-ratings {
+      margin-bottom: 1rem;
+    }
+    #filter-rating-range {
+      display: flex;
+      align-items: center;
+      margin: .5rem 0; 
+    }
+    #filter-rating-range > label {
+    flex: none;
+    white-space: nowrap;
+  }
+  #rating-slider {
+    flex: 1;
+    margin: 0 1.5rem;
+    max-width: 700px;
+  }
   </style>
 </head>
 
@@ -82,6 +115,20 @@
       <input type="text" id="filter-include" placeholder="Superheroes, Magic">
       <label>Exclude Words (comma separated)</label>
       <input type="text" id="filter-exclude" placeholder="Superheroes, Magic">
+      <label>Content Ratings</label>
+      <div id="filter-content-ratings">
+        <label><input type="checkbox" value="G"> G</label>
+        <label><input type="checkbox" value="PG"> PG</label>
+        <label><input type="checkbox" value="PG-13"> PG-13</label>
+        <label><input type="checkbox" value="R"> R</label>
+        <label><input type="checkbox" value="NC-17"> NC-17</label>
+      </div>
+      <label>Audience Rating</label>
+      <div id="filter-rating-range">
+        <label>Min: <span id="min-label">0.0</span></label>
+        <div id="rating-slider"></div>
+        <label>Max: <span id="max-label">10.0</span></label>
+      </div>
     </div>
   </form>
 
@@ -96,6 +143,8 @@
       <ul id="recommendation-list"></ul>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
 
   <script>
     let userCount = 0;
@@ -120,6 +169,29 @@
     addUser();
     addUser();
 
+    // init range slider
+    const ratingSlider = document.getElementById('rating-slider');
+    noUiSlider.create(ratingSlider, {
+      start: [0, 10],
+      connect: true,
+      range: { min: 0, max: 10 },
+      step: 0.1
+    });
+    const minLabel = document.getElementById('min-label');
+    const maxLabel = document.getElementById('max-label');
+    
+    ratingSlider.noUiSlider.on('update', (values) => {
+      minLabel.textContent = parseFloat(values[0]).toFixed(1);
+      maxLabel.textContent = parseFloat(values[1]).toFixed(1);
+    });
+
+    // filter toggle logic
+    document.getElementById("filter-toggle").addEventListener("click", () => {
+    const box = document.getElementById("filter-box");
+    const visible = box.style.display === "block";
+    box.style.display = visible ? "none" : "block";
+    });
+
     document.getElementById("recommendation-form").addEventListener("submit", async function(event) {
       event.preventDefault();
 
@@ -134,7 +206,9 @@
       const excludeText = document.getElementById("filter-exclude").value.trim();
       const include = includeText ? includeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
       const exclude = excludeText ? excludeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
-      const payload = { users, include, exclude };
+      const contentRatings = Array.from(document.querySelectorAll('#filter-content-ratings input:checked')).map(cb => cb.value);
+      const [minRating, maxRating] = ratingSlider.noUiSlider.get().map(v => parseFloat(v));
+      const payload = { users, include, exclude, content_ratings: contentRatings, rating_min: minRating, rating_max: maxRating };
       const resp = await fetch("/recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -160,9 +234,9 @@
         data.overlap.forEach(m => {
           const li = document.createElement("li");
           li.innerHTML = `
-            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"}) —
-            Rating: ${m.rating||"N/A"}
+            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"}) — Rating: ${m.rating||"N/A"}
             <button class="summary-toggle">▼</button>
+            <div class="content-rating">${m.content_rating || "NR"}</div>
             <div class="summary" style="display:none">${m.summary||"No summary."}</div>
           `;
           const btn = li.querySelector(".summary-toggle");
@@ -184,9 +258,9 @@
         data.recommendations.forEach(m => {
           const li = document.createElement("li");
           li.innerHTML = `
-            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"}) —
-            Rating: ${m.rating||"N/A"}
+            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
             <button class="summary-toggle">▼</button>
+            <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
             <div class="summary" style="display:none">${m.summary||"No summary."}</div>
           `;
           const btn = li.querySelector(".summary-toggle");
@@ -208,13 +282,6 @@
         recSec.style.display = "block";
         recList.innerHTML = "<li>No overlap or recommendations found.</li>";
       }
-    });
-
-    // filter toggle logic
-    document.getElementById("filter-toggle").addEventListener("click", () => {
-      const box = document.getElementById("filter-box");
-      const visible = box.style.display === "block";
-      box.style.display = visible ? "none" : "block";
     });
   </script>
 </body>

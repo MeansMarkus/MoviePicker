@@ -67,6 +67,21 @@ def get_similar_movies(movie_id):
         return data.get("results", [])
     return []
 
+def get_content_rating(movie_id: int, country: str = "US") -> str:
+    url = f"{BASE_URL}/movie/{movie_id}/release_dates"
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code != 200:
+        return ""
+    data = response.json().get("results", [])
+    # Find the entry for desired country
+    for entry in data:
+        if entry.get("iso_3166_1") == country:
+            for rel in entry.get("release_dates", []):
+                cert = rel.get("certification")
+                if cert:
+                    return cert
+    return ""
+
 def _fetch_tmdb_list(url):
     response = requests.get(url, headers=HEADERS)
     if response.status_code == 200:

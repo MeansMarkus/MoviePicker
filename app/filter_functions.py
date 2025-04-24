@@ -42,3 +42,33 @@ def word_filter(
             continue
         filtered.append(movie)
     return filtered
+
+def content_rating_filter(
+    recommendations: list[dict],
+    allowed_ratings: list[str]
+) -> list[dict]:
+    
+    if not allowed_ratings:
+        return recommendations
+    allowed_set = {r.strip() for r in allowed_ratings}
+    return [m for m in recommendations if m.get('content_rating') in allowed_set]
+
+
+def audience_rating_filter(
+    recommendations: list[dict],
+    allowed_bins: list[int]
+) -> list[dict]:
+    if not allowed_bins:
+        return recommendations
+    filtered: list[dict] = []
+    for m in recommendations:
+        rating = m.get('rating')
+        if rating is None:
+            continue
+        try:
+            bin_index = int(rating)
+        except (ValueError, TypeError):
+            continue
+        if bin_index in allowed_bins:
+            filtered.append(m)
+    return filtered

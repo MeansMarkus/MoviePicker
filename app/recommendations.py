@@ -106,8 +106,7 @@ def get_recommendations(self, user_inputs: list[str]) -> dict:
             "release_date": m.get("release_date"),
             "summary": m.get("overview"),
         }
-        for m in raw_recs
-        if m
+        for m in raw_recs if m
     ]
 
     return {
