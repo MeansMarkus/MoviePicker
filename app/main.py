@@ -5,8 +5,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.filter_functions import (word_filter, content_rating_filter, audience_rating_filter)
-from flask import Flask, render_template, request, redirect, session
-
 
 from app.movie_parser import parse_input_list
 from app.tmdb_API import (
@@ -137,31 +135,3 @@ def recommend_movies(data: MovieListRequest):
         "overlap": overlap,
         "recommendations": recommendations
     }
-@app.route('/')
-def home():
-    if 'user_id' in session:
-        return redirect('/recommender')
-    return render_template('login.html')
-
-@app.route('/recommender')
-def recommender():
-    if 'user_id' not in session:
-        return redirect('/')
-    return render_template('recommender.html', username=session['username'])
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect('/')
-
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form['username']
-    password = request.form['password']
-    db = get_db()
-    user = db.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password)).fetchone()
-    if user:
-        session['user_id'] = user['id']
-        session['username'] = user['username']
-        return redirect('/recommender')
-    return "Invalid login. Try again."
