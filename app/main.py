@@ -5,6 +5,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.filter_functions import (word_filter, content_rating_filter, audience_rating_filter)
+from flask import Flask, render_template, request, redirect, session
+
 
 from app.movie_parser import parse_input_list
 from app.tmdb_API import (
