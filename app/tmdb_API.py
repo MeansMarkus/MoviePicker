@@ -15,7 +15,7 @@ HEADERS = {
 def search_movie(title):
     url = f"{BASE_URL}/search/movie"
     params = {"query": title}
-    print(f"Searching TMDB for: {title}")  # Add this line
+    #print(f"Searching TMDB for: {title}")  
 
     response = requests.get(url, headers=HEADERS, params=params)
 
@@ -25,7 +25,7 @@ def search_movie(title):
 
     results = response.json().get("results", [])
     if results:
-        print(f"Found '{title}' as: {results[0]['title']} (ID: {results[0]['id']})")
+        #print(f"Found '{title}' as: {results[0]['title']} (ID: {results[0]['id']})")
         return results[0]["id"]
 
     print(f"No results for '{title}'")
@@ -42,10 +42,10 @@ def get_movie_details(movie_id):
 def get_recommendations_for_movie(movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations"
     response = requests.get(url, headers=HEADERS)
-    print(f"RECOMMENDATIONS for {movie_id}:", response.status_code)
+    #print(f"RECOMMENDATIONS for {movie_id}:", response.status_code)
     try:
         data = response.json()
-        print(data)
+        #print(data)
     except Exception as e:
         print("Failed to decode JSON:", e)
         return []
@@ -56,10 +56,10 @@ def get_recommendations_for_movie(movie_id):
 def get_similar_movies(movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}/similar"
     response = requests.get(url, headers=HEADERS)
-    print(f"SIMILAR for {movie_id}:", response.status_code)
+    #print(f"SIMILAR for {movie_id}:", response.status_code)
     try:
         data = response.json()
-        print(data)
+        #print(data)
     except Exception as e:
         print("Failed to decode JSON:", e)
         return []
@@ -73,7 +73,6 @@ def get_content_rating(movie_id: int, country: str = "US") -> str:
     if response.status_code != 200:
         return ""
     data = response.json().get("results", [])
-    # Find the entry for desired country
     for entry in data:
         if entry.get("iso_3166_1") == country:
             for rel in entry.get("release_dates", []):
@@ -81,6 +80,14 @@ def get_content_rating(movie_id: int, country: str = "US") -> str:
                 if cert:
                     return cert
     return ""
+
+def get_genre_list() -> list[str]:
+    url = f"{BASE_URL}/genre/movie/list"
+    response = requests.get(url, headers=HEADERS, params={"language":"en-US"})
+    if response.status_code != 200:
+        return []
+    data = response.json().get("genres", [])
+    return [g.get("name") for g in data if g.get("name")]
 
 def _fetch_tmdb_list(url):
     response = requests.get(url, headers=HEADERS)

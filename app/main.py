@@ -12,7 +12,8 @@ from app.tmdb_API import (
     get_movie_details,
     get_recommendations_for_movie,
     get_similar_movies,
-    get_content_rating
+    get_content_rating,
+    get_genre_list
 )
 
 app = FastAPI()
@@ -20,6 +21,12 @@ app = FastAPI()
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+@app.get("/genres")
+def fetch_genres():
+    #Fetch and return TMDB genres dynamically
+    return {"genres": get_genre_list()}
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,7 +48,9 @@ class MovieListRequest(BaseModel):
     include: list[str] = []  
     exclude: list[str] = []  
     content_ratings: list[str] = [] 
-    audience_ratings: list[int] = []
+    rating_min: float = 0.0          
+    rating_max: float = 10.0
+
 
 @app.post("/recommendations")
 def recommend_movies(data: MovieListRequest):
@@ -121,8 +130,7 @@ def recommend_movies(data: MovieListRequest):
     if data.include or data.exclude:
         recommendations = word_filter(recommendations, data.include, data.exclude)
         recommendations = content_rating_filter(recommendations, data.content_ratings)
-        recommendations = audience_rating_filter(recommendations, data.audience_ratings)
-
+        recommendations = audience_rating_filter(recommendations, data.rating_min, data.rating_max)
     return {
         "overlap": overlap,
         "recommendations": recommendations

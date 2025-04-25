@@ -98,11 +98,73 @@
     margin: 0 1.5rem;
     max-width: 700px;
   }
+  /* genre filter */
+  #filter-genres-container {
+    position: relative;
+     margin-top: 0rem;
+   }
+  #filter-genres-container.has-genres {
+    margin-top: 1rem; 
+  }
+  #filter-genres-input {
+    margin-bottom: 1rem; 
+  }
+  #genre-bubbles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .genre-bubble {
+    background: #3FB8AF;
+    color: #fff;
+    padding: 0.3rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  .remove-genre {
+    margin-left: 0.4rem;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  #genre-suggestions {
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    background: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+    margin-top: 0.2rem;
+    padding: 0;
+    list-style: none;
+    display: none;
+    z-index: 10;
+  }
+  #genre-suggestions li {
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+  #genre-suggestions li:hover {
+    background: #444;
+  }
   </style>
 </head>
 
 <body>
   <h1>Movie Recommender</h1>
+
+  <div class="section" id="instructions">
+    <h2>Instructions</h2>
+    <ul>
+      <li>Paste the URL to an IMDb, Letterboxd, or TMDB list or type movie titles manually for each user.</li>
+      <li>Click <strong>Add Another User</strong> to include more users in the comparison.</li>
+      <li>Use <strong>Filter Results</strong> to refine by keywords, content ratings, or audience ratings.</li>
+      <li>Once ready, click <strong>Get Recommendations</strong> to fetch overlap movies and personalized suggestions.</li>
+    </ul>
+  </div>
 
   <form id="recommendation-form">
     <div id="users-container"></div>
@@ -111,6 +173,17 @@
     <button type="submit">Get Recommendations</button>
     <button type="button" id="filter-toggle" class="filter-toggle">Filter Results</button>
     <div id="filter-box" class="section" style="display:none">
+      <label>Genres</label>
+        <div id="filter-genres-container">
+          <div id="genre-bubbles"></div>
+          <input
+            type="text"
+            id="filter-genres-input"
+            placeholder="Type a genre"
+            autocomplete="off"
+          />
+          <ul id="genre-suggestions"></ul>
+        </div>
       <label>Include Words (comma separated)</label>
       <input type="text" id="filter-include" placeholder="Superheroes, Magic">
       <label>Exclude Words (comma separated)</label>
@@ -208,7 +281,7 @@
       const exclude = excludeText ? excludeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
       const contentRatings = Array.from(document.querySelectorAll('#filter-content-ratings input:checked')).map(cb => cb.value);
       const [minRating, maxRating] = ratingSlider.noUiSlider.get().map(v => parseFloat(v));
-      const payload = { users, include, exclude, content_ratings: contentRatings, rating_min: minRating, rating_max: maxRating };
+      const payload = { users, include, exclude, content_ratings: contentRatings, rating_min: minRating, rating_max: maxRating, genres: selectedGenres };
       const resp = await fetch("/recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -234,9 +307,9 @@
         data.overlap.forEach(m => {
           const li = document.createElement("li");
           li.innerHTML = `
-            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"}) — Rating: ${m.rating||"N/A"}
+            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
             <button class="summary-toggle">▼</button>
-            <div class="content-rating">${m.content_rating || "NR"}</div>
+            <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
             <div class="summary" style="display:none">${m.summary||"No summary."}</div>
           `;
           const btn = li.querySelector(".summary-toggle");
@@ -283,6 +356,73 @@
         recList.innerHTML = "<li>No overlap or recommendations found.</li>";
       }
     });
+
+       // --- dynamic genre autocomplete & bubble picker ---
+       let GENRE_LIST = [];
+       let selectedGenres = [];
+       // Fetch TMDB genres
+       fetch('/genres')
+         .then(res => res.json())
+         .then(data => { GENRE_LIST = data.genres || []; })
+         .catch(() => { GENRE_LIST = []; });
+     
+       const genreInput       = document.getElementById('filter-genres-input');
+       const genreBubbles     = document.getElementById('genre-bubbles');
+       const genreSuggestions = document.getElementById('genre-suggestions');
+     
+       // Show suggestions as you type
+       genreInput.addEventListener('input', () => {
+         const val = genreInput.value.trim().toLowerCase();
+         const matches = val
+           ? GENRE_LIST.filter(g =>
+               g.toLowerCase().startsWith(val) && !selectedGenres.includes(g)
+             )
+           : [];
+         genreSuggestions.innerHTML = '';
+         if (!matches.length) return genreSuggestions.style.display = 'none';
+     
+         matches.forEach(g => {
+           const li = document.createElement('li');
+           li.textContent = g;
+           li.onclick = () => {
+             // create bubble
+             selectedGenres.push(g);
+             const bubble = document.createElement('span');
+             bubble.className = 'genre-bubble';
+             bubble.textContent = g;
+             const remove = document.createElement('span');
+             remove.className = 'remove-genre';
+             remove.textContent = '×';
+             remove.onclick = () => {
+               genreBubbles.removeChild(bubble);
+               selectedGenres = selectedGenres.filter(x => x !== g);
+               // if no genres left, remove spacing
+               if (selectedGenres.length === 0) {
+                  document.getElementById('filter-genres-container')
+                  .classList.remove('has-genres');
+               }
+             };
+             bubble.appendChild(remove);
+             genreBubbles.appendChild(bubble);
+             // ensure spacing once a genre is added
+             document.getElementById('filter-genres-container')
+                .classList.add('has-genres');
+             // reset
+             genreInput.value = '';
+             genreSuggestions.style.display = 'none';
+             genreInput.focus();
+           };
+           genreSuggestions.appendChild(li);
+         });
+         genreSuggestions.style.display = 'block';
+       });
+     
+       // Hide dropdown if clicking outside
+       document.addEventListener('click', e => {
+         if (!document.getElementById('filter-genres-container').contains(e.target)) {
+           genreSuggestions.style.display = 'none';
+         }
+       });
   </script>
 </body>
 </html>
