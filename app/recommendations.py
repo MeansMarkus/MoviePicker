@@ -35,12 +35,11 @@ def get_recommendations(self, user_inputs: list[str]) -> dict:
     # collect union of all input IDs
     all_input_ids = set().union(*user_id_lists)
 
-    # find direct overlaps (only if >1 user)
-    overlap_ids = (
-        set.intersection(*user_id_lists)
-        if len(user_id_lists) > 1
-        else set()
-    )
+ #for one user, every input movie is an “overlap”
+    if len(user_id_lists) > 1:
+        overlap_ids = set.intersection(*user_id_lists)
+    else:
+        overlap_ids = user_id_lists[0]   # the single user’s set
 
     # build overlapping movie format
     raw_overlap = [get_movie_details(mid) for mid in overlap_ids]

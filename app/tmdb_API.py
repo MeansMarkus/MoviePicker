@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from fastapi import APIRouter
 
 load_dotenv()
 
@@ -94,3 +95,41 @@ def _fetch_tmdb_list(url):
     if response.status_code == 200:
         return response.json().get("results", [])
     return []
+
+router = APIRouter()
+
+@router.get("/search")
+def search_movies_endpoint(q: str, limit: int = 5):
+    params = {"query": q, "language": "en-US", "page": 1, "include_adult": False}
+    resp = requests.get(f"{BASE_URL}/search/movie", headers=HEADERS, params=params)
+    if resp.status_code != 200:
+        return {"results": []}
+    results = resp.json().get("results", [])[:limit]
+    return {
+        "results": [
+            {
+                "title": m.get("title"),
+                "id": m.get("id"),
+                "year": (m.get("release_date") or "")[0:4]
+            }
+            for m in results if m.get("title") and m.get("id")
+        ]
+    }
+
+def search_movies(q: str, limit: int = 5) -> list[dict]:
+    params = {
+        "query": q,
+        "language": "en-US",
+        "page": 1,
+        "include_adult": False
+    }
+    resp = requests.get(f"{BASE_URL}/search/movie", headers=HEADERS, params=params)
+    if resp.status_code != 200:
+        return []
+    results = resp.json().get("results", [])[:limit]
+    return [
+        {"title": m["title"], "id": m["id"]}
+        for m in results
+        if m.get("title") and m.get("id")
+    ]
+

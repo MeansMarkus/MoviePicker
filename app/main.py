@@ -3,8 +3,10 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Union, List
 from pydantic import BaseModel
 from app.filter_functions import (word_filter, content_rating_filter, audience_rating_filter)
+
 
 from app.movie_parser import parse_input_list
 from app.tmdb_API import (
@@ -13,10 +15,13 @@ from app.tmdb_API import (
     get_recommendations_for_movie,
     get_similar_movies,
     get_content_rating,
-    get_genre_list
+    get_genre_list,
+    router as tmdb_router,
 )
 
 app = FastAPI()
+app.include_router(tmdb_router)
+
 
 @app.get("/health")
 def health_check():
@@ -44,12 +49,12 @@ def serve_frontend():
         return f.read()
 
 class MovieListRequest(BaseModel):
-    users: list[str]
-    include: list[str] = []  
-    exclude: list[str] = []  
-    content_ratings: list[str] = [] 
-    rating_min: float = 0.0          
-    rating_max: float = 10.0
+    users: List[Union[str, List[str]]]
+    include:        List[str] = []
+    exclude:        List[str] = []
+    content_ratings:List[str] = []
+    rating_min:     float     = 0.0
+    rating_max:     float     = 10.0
 
 
 @app.post("/recommendations")
@@ -59,51 +64,61 @@ def recommend_movies(data: MovieListRequest):
     all_titles = []
     for user_input in data.users:
         titles = parse_input_list(user_input)
-        user_lists.append(set(titles))
-        all_titles.extend(titles)
-
-    # Determine overlap titles (only if >1 user)
-    overlap_titles = set.intersection(*user_lists) if len(user_lists) > 1 else set()
+        if titles:
+            user_lists.append(set(titles))
+            all_titles.extend(titles)
 
     # Resolve all input titles to TMDB IDs
     movie_ids = {
         mid
         for title in all_titles
-        for mid in [search_movie(title)]
+        for mid in (search_movie(title),)
         if mid
     }
 
-    # Resolve overlap titles to TMDB IDs
-    overlap_ids = {
-        mid
-        for title in overlap_titles
-        for mid in [search_movie(title)]
-        if mid
-    }
-
-    # Fetch overlap movie details
-    raw_overlap = [get_movie_details(mid) for mid in overlap_ids]
-    overlap = [
-        {
-            "rating": m.get("vote_average"),
-            "title": m.get("title"),
-            "content_rating": get_content_rating(m.get("id")),
-            "release_date": m.get("release_date"),
-            "summary": m.get("overview")
-        }
-        for m in raw_overlap if m
-    ]
-
-    # Build candidate pool
+    # Build overlap & candidate pool
     candidates = []
-    if overlap_ids:
-        # If there are overlaps, use the “recommendations” endpoint
-        for mid in overlap_ids:
+    overlap = []
+    overlap_ids = set()
+    overlap_titles = set()
+
+    if len(user_lists) <= 1:
+        for mid in movie_ids:
             candidates.extend(get_recommendations_for_movie(mid) or [])
     else:
-        # Otherwise, fall back to the “similar” endpoint
-        for mid in movie_ids:
-            candidates.extend(get_similar_movies(mid) or [])
+        overlap_titles = set.intersection(*user_lists)
+        overlap_ids = {
+            mid
+            for title in overlap_titles
+            for mid in (search_movie(title),)
+            if mid
+        }
+        # Fetch overlap details
+        raw_overlap = [get_movie_details(mid) for mid in overlap_ids]
+        overlap = [
+            {
+                "rating": m.get("vote_average"),
+                "title": m.get("title"),
+                "content_rating": get_content_rating(m.get("id")),
+                "release_date": m.get("release_date"),
+                "summary": m.get("overview")
+            }
+            for m in raw_overlap if m
+        ]
+
+        # Recommendations from overlaps
+        if overlap_ids:
+            for mid in overlap_ids:
+                candidates.extend(get_recommendations_for_movie(mid) or [])
+        else:  # No overlaps then fallback to "similar" endpoint
+            for mid in movie_ids:
+                candidates.extend(get_similar_movies(mid) or [])
+
+    # DEBUG
+    #print("▶ all_titles:", all_titles)
+    #print("▶ movie_ids:", movie_ids)
+    #print("▶ overlap_titles:", overlap_titles)
+    #print("▶ overlap_ids:", overlap_ids)
 
     # Rank by frequency
     candidate_ids = [c["id"] for c in candidates if "id" in c]
@@ -135,3 +150,6 @@ def recommend_movies(data: MovieListRequest):
         "overlap": overlap,
         "recommendations": recommendations
     }
+
+def search_movies_endpoint(q: str):
+    return {"results": search_movies(q)}

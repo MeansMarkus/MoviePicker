@@ -68,6 +68,63 @@
     li {
       margin-bottom: 1rem;
     }
+    /* Add space after url input box */
+    input.user-url-input {
+      margin-bottom: 1rem;
+    }
+    /* Manually input movies styling */
+     .movie-input-container {
+      position: relative;
+      margin-top: 0;
+    }
+    .movie-input-container.has-movies {
+      /* add gap when bubbles are present */
+      margin-top: 1rem;
+    }
+    .movie-bubbles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+     }
+    .movie-bubble {
+      background: #3FB8AF;
+      color: #fff;
+      padding: 0.3rem 0.6rem;
+      border-radius: 1rem;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+    }
+    .remove-movie {
+      margin-left: 0.4rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .movie-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 4px;
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 0.2rem;
+      padding: 0;
+      list-style: none;
+      display: none;
+      z-index: 10;
+    }
+    .movie-suggestions li {
+      padding: 0.5rem;
+      cursor: pointer;
+    }
+    .movie-suggestions li:hover {
+      background: #444;
+    }
+
     .summary {
       font-size: 0.9rem;
       color: #bbbbbb;
@@ -81,9 +138,11 @@
     #filter-exclude {
       margin-bottom: 1rem;
     }
+  
     #filter-content-ratings {
       margin-bottom: 1rem;
     }
+  /* Audience rating filter styling */
     #filter-rating-range {
       display: flex;
       align-items: center;
@@ -92,64 +151,64 @@
     #filter-rating-range > label {
     flex: none;
     white-space: nowrap;
-  }
-  #rating-slider {
-    flex: 1;
-    margin: 0 1.5rem;
-    max-width: 700px;
-  }
-  /* genre filter */
-  #filter-genres-container {
-    position: relative;
-     margin-top: 0rem;
-   }
-  #filter-genres-container.has-genres {
-    margin-top: 1rem; 
-  }
-  #filter-genres-input {
-    margin-bottom: 1rem; 
-  }
-  #genre-bubbles {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-  .genre-bubble {
-    background: #3FB8AF;
-    color: #fff;
-    padding: 0.3rem 0.6rem;
-    border-radius: 1rem;
-    font-size: 0.9rem;
-    display: inline-flex;
-    align-items: center;
-  }
-  .remove-genre {
-    margin-left: 0.4rem;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  #genre-suggestions {
-    position: absolute;
-    top: 100%; left: 0; right: 0;
-    background: #1e1e1e;
-    border: 1px solid #444;
-    border-radius: 4px;
-    max-height: 150px;
-    overflow-y: auto;
-    margin-top: 0.2rem;
-    padding: 0;
-    list-style: none;
-    display: none;
-    z-index: 10;
-  }
-  #genre-suggestions li {
-    padding: 0.5rem;
-    cursor: pointer;
-  }
-  #genre-suggestions li:hover {
-    background: #444;
-  }
+    }
+    #rating-slider {
+      flex: 1;
+      margin: 0 1.5rem;
+      max-width: 700px;
+    }
+  /* genre filter styling */
+    #filter-genres-container {
+      position: relative;
+      margin-top: 0rem;
+    }
+    #filter-genres-container.has-genres {
+      margin-top: 1rem; 
+    }
+    #filter-genres-input {
+      margin-bottom: 1rem; 
+    }
+    #genre-bubbles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .genre-bubble {
+      background: #3FB8AF;
+      color: #fff;
+      padding: 0.3rem 0.6rem;
+      border-radius: 1rem;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+    }
+    .remove-genre {
+      margin-left: 0.4rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #genre-suggestions {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 4px;
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 0.2rem;
+      padding: 0;
+      list-style: none;
+      display: none;
+      z-index: 10;
+    }
+    #genre-suggestions li {
+      padding: 0.5rem;
+      cursor: pointer;
+    }
+    #genre-suggestions li:hover {
+      background: #444;
+    }
   </style>
 </head>
 
@@ -230,10 +289,24 @@
       section.innerHTML = `
         <h3>User ${userCount}</h3>
         <label>Paste List URL (IMDb / Letterboxd / TMDB)</label>
-        <input type="text" id="user${userCount}-url" placeholder="https://letterboxd.com/user/list/...">
-        <label>Or Type Movies (one per line)</label>
-        <textarea id="user${userCount}-manual" rows="5" placeholder="Inception&#10;The Matrix&#10;Tenet"></textarea>
-      `;
+        <input 
+          type="text" 
+          id="user${userCount}-url" 
+          class="user-url-input"
+          placeholder="https://letterboxd.com/user/list/..."
+          />
+        <label>Or Manually Add Movies</label>
+        <div id="movie-input-container-${userCount}" class="movie-input-container">
+          <div id="movie-bubbles-${userCount}" class="movie-bubbles"></div>
+          <input
+            type="text"
+            id="movie-input-${userCount}"
+            placeholder="Start typing a movie title…"
+            autocomplete="off"
+          />
+          <ul id="movie-suggestions-${userCount}" class="movie-suggestions"></ul>
+        </div>
+        `
       container.appendChild(section);
     }
 
@@ -241,6 +314,81 @@
     document.getElementById("add-user-btn").addEventListener("click", addUser);
     addUser();
     addUser();
+
+    // --- movie picker for each user ---
+    function initMoviePicker(index) {
+      const input       = document.getElementById(`movie-input-${index}`);
+      const bubbles     = document.getElementById(`movie-bubbles-${index}`);
+      const suggestList = document.getElementById(`movie-suggestions-${index}`);
+      const container = document.getElementById(`movie-input-container-${index}`);
+
+      let selected      = [];
+
+      input.addEventListener('input', () => {
+        const q = input.value.trim();
+        if (!q) return suggestList.style.display = 'none';
+
+        fetch(`/search?q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(data => {
+            suggestList.innerHTML = '';
+            const hits = (data.results || []).slice(0, 5);
+            if (!hits.length) return suggestList.style.display = 'none';
+
+            hits.forEach(m => {
+              const li = document.createElement('li');
+              const year = m.year ? ` (${m.year})` : "";
+              li.textContent = m.title + year;
+              li.onclick = () => {
+                if (!selected.includes(m.title)) {
+                  selected.push(m.title);
+                  const bub = document.createElement('span');
+                  const year = m.year ? ` (${m.year})` : '';
+                  bub.className = 'movie-bubble';
+                  bub.textContent = m.title + year;
+                  const rem = document.createElement('span');
+                  rem.className = 'remove-movie';
+                  rem.textContent = '×';
+                  rem.onclick = () => {
+                    bubbles.removeChild(bub);
+                    selected = selected.filter(x => x !== m.title);
+                    if (selected.length === 0) {
+                      container.classList.remove('has-movies');
+                    }
+                  };
+                  bub.appendChild(rem);
+                  bubbles.appendChild(bub);
+
+                  container.classList.add('has-movies');
+                }
+                input.value = '';
+                suggestList.style.display = 'none';
+                input.focus();
+
+                
+              };
+              suggestList.appendChild(li);
+            });
+            suggestList.style.display = 'block';
+          })
+          .catch(() => { suggestList.style.display = 'none'; });
+      });
+
+      document.addEventListener('click', e => {
+        if (!document.getElementById(`movie-input-container-${index}`)
+              .contains(e.target)) {
+          suggestList.style.display = 'none';
+        }
+      });
+
+      // expose for form submission
+      window[`selectedMovies${index}`] = () => selected;
+    }
+
+    // after seeding users, init pickers
+    for (let i = 1; i <= userCount; i++) {
+      initMoviePicker(i);
+    }
 
     // init range slider
     const ratingSlider = document.getElementById('rating-slider');
@@ -271,8 +419,12 @@
       const users = [];
       for (let i = 1; i <= userCount; i++) {
         const url    = document.getElementById(`user${i}-url`).value.trim();
-        const manual = document.getElementById(`user${i}-manual`).value.trim();
-        if (url || manual) users.push(url || manual);
+        const manual   = window[`selectedMovies${i}`]() || [];
+        if (url) {
+          users.push(url);
+        } else if (manual.length) {
+          users.push(manual);
+        }
       }
 
       const includeText = document.getElementById("filter-include").value.trim();

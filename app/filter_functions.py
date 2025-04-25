@@ -56,19 +56,28 @@ def content_rating_filter(
 
 def audience_rating_filter(
     recommendations: list[dict],
-    allowed_bins: list[int]
+    min_rating: float,
+    max_rating: float
 ) -> list[dict]:
-    if not allowed_bins:
-        return recommendations
+
     filtered: list[dict] = []
     for m in recommendations:
-        rating = m.get('rating')
-        if rating is None:
-            continue
+        r = m.get('rating')
         try:
-            bin_index = int(rating)
+            r_val = float(r)
         except (ValueError, TypeError):
             continue
-        if bin_index in allowed_bins:
+        if min_rating <= r_val <= max_rating:
+            filtered.append(m)
+    return filtered
+
+def genre_filter(recommendations: list[dict], allowed_genres: list[str]) -> list[dict]:
+    if not allowed_genres:
+        return recommendations
+    allowed_set = {g.strip() for g in allowed_genres}
+    filtered: list[dict] = []
+    for m in recommendations:
+        genres = m.get('genres', [])
+        if any(g in allowed_set for g in genres):
             filtered.append(m)
     return filtered
