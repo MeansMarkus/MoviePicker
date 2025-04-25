@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Movie Picker</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            background-color: #1e1e1e;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        #movieTitle, #movieRating {
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+        button {
+            background-color: rgb(57, 30, 233);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        button:hover {
+            background-color: #b86339;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Random Movie Picker</h1>
+        <button onclick="getRandomMovie()">Pick a Movie</button>
+        <div id="movieTitle"></div>
+        <div id="movieRating"></div>
+    </div>
+
+    <script>
+        async function getRandomMovie() {
+            const response = await fetch('/get-random-movie'); // Backend endpoint
+            const data = await response.json();
+
+            document.getElementById('movieTitle').innerText = `Movie: ${data.title}`;
+            document.getElementById('movieRating').innerText = `Rating: ${data.rating}`;
+        }
+    </script>
+</body>
+</html>
