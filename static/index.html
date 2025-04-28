@@ -610,10 +610,26 @@
 <div id="loading-spinner"></div>
 
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    setupUserLoginSystem();
-  });
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyD1wAKyRzU9EavqFUgvofwelpj7gM79sbY",
+    authDomain: "moviepicker-e14f4.firebaseapp.com",
+    projectId: "moviepicker-e14f4",
+    storageBucket: "moviepicker-e14f4.firebasestorage.app",
+    messagingSenderId: "164660100747",
+    appId: "1:164660100747:web:bb074c168dc4b7f5131e8e",
+    measurementId: "G-YJF568XBTE"
+  };
+
+  // Initialize Firebase
+  window.firebaseApp = initializeApp(firebaseConfig);
+  window.firebaseAuth = getAuth(window.firebaseApp);
+  window.firebaseAnalytics = getAnalytics(window.firebaseApp);
 </script>
 <script src="script.js"></script>
 
