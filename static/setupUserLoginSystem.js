@@ -1,4 +1,4 @@
-// Security: Implements signup/login forms, stores sessions in localStorage, and toggles UI on auth state. 
+// Security: Implements signup/login forms, stores sessions in localStorage, and toggles UI on auth state
 
 // This function will inject everything we need - both HTML and styles
 function setupUserLoginSystem() {

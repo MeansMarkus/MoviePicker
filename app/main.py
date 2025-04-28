@@ -174,7 +174,7 @@ def recommend_movies(data: MovieListRequest):
     recommended_ids = [mid for mid in sorted_ids if mid not in exclude]
 
     # fetch top‑10 recommendation details
-    raw_recs = [get_movie_details(mid) for mid in recommended_ids[:10]]
+    raw_recs = [get_movie_details(mid) for mid in recommended_ids]
     recommendations = [
         {
             "rating": m.get("vote_average"),
@@ -188,9 +188,24 @@ def recommend_movies(data: MovieListRequest):
 
     # apply word_filter if user provided include/exclude terms
     if data.include or data.exclude:
-        recommendations = word_filter(recommendations, data.include, data.exclude)
-        recommendations = content_rating_filter(recommendations, data.content_ratings)
-        recommendations = audience_rating_filter(recommendations, data.rating_min, data.rating_max)
+        recommendations = word_filter(
+            recommendations,
+            data.include,
+            data.exclude
+        )
+    # apply content-rating filter if checkboxes used
+    if data.content_ratings:
+        recommendations = content_rating_filter(
+            recommendations,
+            data.content_ratings
+        )
+    # always apply audience-rating filter (defaults 0.0–10.0)
+    recommendations = audience_rating_filter(
+        recommendations,
+        data.rating_min,
+        data.rating_max
+    )
+    recommendations = recommendations[:10]
     return {
         "overlap": overlap,
         "recommendations": recommendations
