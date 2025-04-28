@@ -966,124 +966,103 @@
 
  
  document.getElementById("recommendation-form").addEventListener("submit", async function(event) {
-  event.preventDefault();
-
-  const users = [];
-  for (let i = 1; i <= userCount; i++) {
-    const url = document.getElementById(`user${i}-url`).value.trim();
-    const manual = window[`selectedMovies${i}`]() || [];
-    if (url) users.push(url);
-    else if (manual.length) users.push(manual);
-  }
-
-  const include = document.getElementById("filter-include").value.trim().split(",").map(w => w.trim()).filter(Boolean);
-  const exclude = document.getElementById("filter-exclude").value.trim().split(",").map(w => w.trim()).filter(Boolean);
-  const contentRatings = Array.from(document.querySelectorAll('#filter-content-ratings input:checked')).map(cb => cb.value);
-  const [minRating, maxRating] = ratingSlider.noUiSlider.get().map(v => parseFloat(v));
-
-  const payload = {
-    users,
-    include,
-    exclude,
-    content_ratings: contentRatings,
-    rating_min: minRating,
-    rating_max: maxRating,
-    genres: selectedGenres
-  };
-
-  const resp = await fetch("/recommendations", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  const data = await resp.json();
-
-  const resultsDiv = document.getElementById("results");
-  const overlapSec = document.getElementById("overlap-section");
-  const overlapList = document.getElementById("overlap-list");
-  const recSec = document.getElementById("recommendation-section");
-  const recList = document.getElementById("recommendation-list");
-
-  // Clear previous
-  overlapList.innerHTML = "";
-  recList.innerHTML = "";
-  resultsDiv.style.display = "block";
-
-  // Helper function to create each movie li
-  function createMovieItem(movie) {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <strong>${movie.title}</strong> (${movie.release_date?.split("-")[0] || "?"})
-      <button class="summary-toggle">▼</button>
-      <div class="content-rating">${movie.content_rating || "NR"} | Audience Rating: ${movie.rating || "N/A"}</div>
-      <div class="summary" style="display:none">${movie.summary || "No summary."}</div>
-    `;
-
-    // Toggle summary
-    const toggleBtn = li.querySelector(".summary-toggle");
-    toggleBtn.onclick = (e) => {
-      const summaryDiv = li.querySelector(".summary");
-      const isHidden = summaryDiv.style.display === "none";
-      summaryDiv.style.display = isHidden ? "block" : "none";
-      e.target.textContent = isHidden ? "▲" : "▼";
-    };
-
-    // Add Save button
-    const saveButton = document.createElement("button");
-    saveButton.className = "save-movie";
-    saveButton.textContent = "Save";
-    saveButton.style.marginLeft = "10px";
-    saveButton.onclick = () => {
-      const user = auth.currentUser;
-      if (user) {
-        saveMovie(user.uid, {
-          title: movie.title,
-          year: movie.release_date?.split("-")[0] || "",
-          summary: movie.summary || "No summary.",
-          rating: movie.rating || "N/A",
-          content_rating: movie.content_rating || "NR"
-        });
-      } else {
-        alert("Please log in to save movies");
-      }
-    };
-
-    const titleElement = li.querySelector("strong").parentNode;
-    titleElement.insertAdjacentElement('afterend', saveButton);
-
-    return li;
-  }
-
-  // Overlap Movies
-  if (data.overlap?.length) {
-    overlapSec.style.display = "block";
-    data.overlap.forEach(movie => {
-      const li = createMovieItem(movie);
-      overlapList.appendChild(li);
-    });
-  } else {
-    overlapSec.style.display = "none";
-  }
-
-  // Recommendations
-  if (data.recommendations?.length) {
-    recSec.style.display = "block";
-    data.recommendations.forEach(movie => {
-      const li = createMovieItem(movie);
-      recList.appendChild(li);
-    });
-  } else {
-    recSec.style.display = "none";
-  }
-
-  // Fallback if no results
-  if ((!data.overlap?.length) && (!data.recommendations?.length)) {
-    recSec.style.display = "block";
-    recList.innerHTML = "<li>No overlap or recommendations found.</li>";
-  }
-});
-
+   event.preventDefault();
+ 
+   const users = [];
+   for (let i = 1; i <= userCount; i++) {
+     const url    = document.getElementById(`user${i}-url`).value.trim();
+     const manual   = window[`selectedMovies${i}`]() || [];
+     if (url) {
+       users.push(url);
+     } else if (manual.length) {
+       users.push(manual);
+     }
+   }
+ 
+   const includeText = document.getElementById("filter-include").value.trim();
+   const excludeText = document.getElementById("filter-exclude").value.trim();
+   const include = includeText ? includeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+   const exclude = excludeText ? excludeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+   const contentRatings = Array.from(document.querySelectorAll('#filter-content-ratings input:checked')).map(cb => cb.value);
+   const [minRating, maxRating] = ratingSlider.noUiSlider.get().map(v => parseFloat(v));
+   const payload = { users, include, exclude, content_ratings: contentRatings, rating_min: minRating, rating_max: maxRating, genres: selectedGenres };
+   const resp = await fetch("/recommendations", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify(payload)
+   });
+   const data = await resp.json();
+ 
+   const resultsDiv  = document.getElementById("results");
+   const overlapSec  = document.getElementById("overlap-section");
+   const overlapList = document.getElementById("overlap-list");
+   const recSec      = document.getElementById("recommendation-section");
+   const recList     = document.getElementById("recommendation-list");
+ 
+   // clear previous
+   overlapList.innerHTML = "";
+   recList.innerHTML     = "";
+ 
+   resultsDiv.style.display = "block";
+ 
+   // Overlap Movies
+   if (data.overlap && data.overlap.length) {
+     overlapSec.style.display = "block";
+     data.overlap.forEach(m => {
+       const li = document.createElement("li");
+       li.innerHTML = `
+         <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
+         <button class="summary-toggle">▼</button>
+         <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
+         <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+       `;
+       const btn = li.querySelector(".summary-toggle");
+       btn.onclick = e => {
+         const summ = li.querySelector(".summary");
+         const show = summ.style.display === "none";
+         summ.style.display = show ? "block" : "none";
+         e.target.textContent = show ? "▲" : "▼";
+       };
+       overlapList.appendChild(li);
+     });
+   } else {
+     overlapSec.style.display = "none";
+   }
+ 
+   // Recommendations
+   if (data.recommendations && data.recommendations.length) {
+     recSec.style.display = "block";
+     data.recommendations.forEach(m => {
+       const li = document.createElement("li");
+       li.innerHTML = `
+         <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
+         <button class="summary-toggle">▼</button>
+         <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
+         <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+       `;
+       const btn = li.querySelector(".summary-toggle");
+       btn.onclick = e => {
+         const summ = li.querySelector(".summary");
+         const show = summ.style.display === "none";
+         summ.style.display = show ? "block" : "none";
+         e.target.textContent = show ? "▲" : "▼";
+       };
+       recList.appendChild(li);
+     });
+   } else {
+     recSec.style.display = "none";
+   }
+ 
+   // Fallback if no results at all
+   if ((!data.overlap || data.overlap.length === 0) &&
+       (!data.recommendations || data.recommendations.length === 0)) {
+     recSec.style.display = "block";
+     recList.innerHTML = "<li>No overlap or recommendations found.</li>";
+   }
+ 
+   // Add this line to add save buttons to all movie results
+   addSaveButtons();
+ });
  </script>
  </body>
  </html>
