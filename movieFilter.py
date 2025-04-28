@@ -1,5 +1,12 @@
 import pandas as pd
 import random
+import re
+
+def sanitize_input(user_input):
+    # Remove any suspicious characters (basic HTML/SQL pattern check)
+        if not re.match(r"^[a-zA-Z0-9 ,.-]+$", user_input):
+            raise ValueError("Invalid characters detected in input.")
+        return user_input.strip() 
 
 def print_random_movie_by_genre(file_path='IMDB-Movie-Data.csv'):
     # Load the CSV into a DataFrame
@@ -8,7 +15,7 @@ def print_random_movie_by_genre(file_path='IMDB-Movie-Data.csv'):
     #Action,Adventure,Comedy,Sci-Fi,Thiller,Fantasy,Biography,Drama,History,Romance,War,Crime.Musical,Western,Family,Horror,Mystery
     
     user_genre = input("Please enter your desired genre! ")
-    #if (input != )
+    user_genre = sanitize_input(user_genre)
 
     # Pick a random row
     random_index = random.randint(0, len(movies_df) - 1)
