@@ -187,6 +187,7 @@ def search_movies_endpoint(q: str, limit: int = 5):
         ]
     }
 
+#Security: API key is not exposed in the URL sanitizer
 def search_movies(q: str, limit: int = 5) -> list[dict]:
     """
     Search TMDB from non-router contexts
