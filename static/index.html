@@ -882,6 +882,7 @@
  }
  // Function to add save buttons to movie results
  function addSaveButtons() {
+   // For overlap movies
    const overlapItems = document.querySelectorAll('#overlap-list li');
    overlapItems.forEach(item => {
      if (!item.querySelector('.save-movie')) {
@@ -914,16 +915,13 @@
          }
        };
        
-       const strong = item.querySelector('strong');
-       if (strong) {
-         strong.insertAdjacentElement('afterend', saveButton);
+       // Insert button after the title
+       const strong = item.querySelector('strong').parentNode;
+       if(strong) {
+        strong.insertAdjacentElement('afterend', saveButton);
        }
      }
    });
-
-
-}
-
    
    // For recommended movies
    const recommendationItems = document.querySelectorAll('#recommendation-list li');
@@ -1061,8 +1059,8 @@
      recList.innerHTML = "<li>No overlap or recommendations found.</li>";
    }
  
-   //   addSaveButtons();Add this line to add save buttons to all movie results
- 
+   // Add this line to add save buttons to all movie results
+   addSaveButtons();
  });
  </script>
  </body>
