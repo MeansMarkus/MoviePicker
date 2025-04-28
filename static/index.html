@@ -1,1092 +1,1090 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Movie Recommender</title>
-  <link
-    href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css"
-    rel="stylesheet"
-  >
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #121212;
-      color: #f1f1f1;
-      padding: 2rem;
-      max-width: 800px;
-      margin: auto;
-    }
-    textarea, input[type=text] {
-      width: 100%;
-      padding: 0.5rem;
-      margin: 0.5rem 0;
-      border: 1px solid #444;
-      border-radius: 4px;
-      background-color: #1e1e1e;
-      color: #f1f1f1;
-    }
-    button {
-      padding: 0.7rem 1.2rem;
-      font-size: 1rem;
-      margin-top: 1rem;
-      background-color: #3FB8AF;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #30928c;
-    }
-    button.summary-toggle {
-    padding: 0.2rem 0.4rem;    
-    font-size: 0.8rem;        
-    background: none;         
-    border: none;             
-    color: #3FB8AF;           
-    cursor: pointer;           
-    margin-top: 0;             
-    margin-left: 0.5rem;       
-    }
-    button.summary-toggle:hover {
-      background: none;         
-    }
-    input[type="checkbox"] {
-      accent-color: #3FB8AF;
-    }
-    .section {
-      background: #1e1e1e;
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      border-radius: 6px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-    ul {
-      padding-left: 1.2rem;
-    }
-    li {
-      margin-bottom: 1rem;
-    }
-    /* Add space after url input box */
-    input.user-url-input {
-      margin-bottom: 1rem;
-    }
-    /* Manually input movies styling */
-     .movie-input-container {
-      position: relative;
-      margin-top: 0;
-    }
-    .movie-input-container.has-movies {
-      /* add gap when bubbles are present */
-      margin-top: 1rem;
-    }
-    .movie-bubbles {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
+ <html lang="en">
+ <head>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+   <title>Movie Recommender</title>
+   <link
+     href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css"
+     rel="stylesheet"
+   >
+   <style>
+     body {
+       font-family: sans-serif;
+       background: #121212;
+       color: #f1f1f1;
+       padding: 2rem;
+       max-width: 800px;
+       margin: auto;
      }
-    .movie-bubble {
-      background: #3FB8AF;
-      color: #fff;
-      padding: 0.3rem 0.6rem;
-      border-radius: 1rem;
-      font-size: 0.9rem;
-      display: inline-flex;
-      align-items: center;
-    }
-    .remove-movie {
-      margin-left: 0.4rem;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .movie-suggestions {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #1e1e1e;
-      border: 1px solid #444;
-      border-radius: 4px;
-      max-height: 150px;
-      overflow-y: auto;
-      margin-top: 0.2rem;
-      padding: 0;
-      list-style: none;
-      display: none;
-      z-index: 10;
-    }
-    .movie-suggestions li {
-      padding: 0.5rem;
-      cursor: pointer;
-    }
-    .movie-suggestions li:hover {
-      background: #444;
-    }
-
-    .summary {
-      font-size: 0.9rem;
-      color: #bbbbbb;
-    }
-    .content-rating {
-      font-size: 0.9rem;
-      color: #bbbbbb;
-      margin-top: 0.2rem;
-      margin-bottom: 0.8rem;
-    }
-    #filter-exclude {
-      margin-bottom: 1rem;
-    }
-  
-    #filter-content-ratings {
-      margin-bottom: 1rem;
-    }
-  /* Audience rating filter styling */
-    #filter-rating-range {
-      display: flex;
-      align-items: center;
-      margin: .5rem 0; 
-    }
-    #filter-rating-range > label {
-    flex: none;
-    white-space: nowrap;
-    }
-    #rating-slider {
-      flex: 1;
-      margin: 0 1.5rem;
-      max-width: 700px;
-    }
-  /* genre filter styling */
-    #filter-genres-container {
-      position: relative;
-      margin-top: 0rem;
-    }
-    #filter-genres-container.has-genres {
-      margin-top: 1rem; 
-    }
-    #filter-genres-input {
-      margin-bottom: 1rem; 
-    }
-    #genre-bubbles {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .genre-bubble {
-      background: #3FB8AF;
-      color: #fff;
-      padding: 0.3rem 0.6rem;
-      border-radius: 1rem;
-      font-size: 0.9rem;
-      display: inline-flex;
-      align-items: center;
-    }
-    .remove-genre {
-      margin-left: 0.4rem;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    #genre-suggestions {
-      position: absolute;
-      top: 100%; left: 0; right: 0;
-      background: #1e1e1e;
-      border: 1px solid #444;
-      border-radius: 4px;
-      max-height: 150px;
-      overflow-y: auto;
-      margin-top: 0.2rem;
-      padding: 0;
-      list-style: none;
-      display: none;
-      z-index: 10;
-    }
-    #genre-suggestions li {
-      padding: 0.5rem;
-      cursor: pointer;
-    }
-    #genre-suggestions li:hover {
-      background: #444;
-
-    }
-    .saved-movie {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.delete-movie {
-  background-color: #e74c3c;
-  color: white;
-  padding: 5px 8px;
-  font-size: 0.8rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.delete-movie:hover {
-  background-color: #c0392b;
-}
-
-.save-movie {
-  background-color: #2ecc71;
-  color: white;
-  padding: 5px 8px;
-  font-size: 0.8rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-left: 10px;
-}
-
-.save-movie:hover {
-  background-color: #27ae60;
-}
-
-#saved-movies-list {
-  margin-top: 10px;
-}
-
-#saved-movies-list li {
-  padding: 8px 0;
-  border-bottom: 1px solid #444;
-}
-
-#saved-movies-list li:last-child {
-  border-bottom: none;
-}
-  </style>
-</head>
-
-<body>
- <title>MoviePicker</title>
-  <div class="section" id="instructions">
-    <h2>Instructions</h2>
-    <ul>
-      <li>Paste the URL to an IMDb, Letterboxd, or TMDB list or type movie titles manually for each user.</li>
-      <li>Click <strong>Add Another User</strong> to include more users in the comparison.</li>
-      <li>Use <strong>Filter Results</strong> to refine by keywords, content ratings, or audience ratings.</li>
-      <li>Once ready, click <strong>Get Recommendations</strong> to fetch overlap movies and personalized suggestions.</li>
-    </ul>
-  </div>
-
-  <form id="recommendation-form">
-    <div id="users-container"></div>
-    <button type="button" id="add-user-btn">➕ Add Another User</button>
-    <br/>
-    <button type="submit">Get Recommendations</button>
-    <button type="button" id="filter-toggle" class="filter-toggle">Filter Results</button>
-    <div id="filter-box" class="section" style="display:none">
-      <label>Genres</label>
-        <div id="filter-genres-container">
-          <div id="genre-bubbles"></div>
-          <input
-            type="text"
-            id="filter-genres-input"
-            placeholder="Type a genre"
-            autocomplete="off"
-          />
-          <ul id="genre-suggestions"></ul>
-        </div>
-      <label>Include Words (comma separated)</label>
-      <input type="text" id="filter-include" placeholder="Superheroes, Magic">
-      <label>Exclude Words (comma separated)</label>
-      <input type="text" id="filter-exclude" placeholder="Superheroes, Magic">
-      <label>Content Ratings</label>
-      <div id="filter-content-ratings">
-        <label><input type="checkbox" value="G"> G</label>
-        <label><input type="checkbox" value="PG"> PG</label>
-        <label><input type="checkbox" value="PG-13"> PG-13</label>
-        <label><input type="checkbox" value="R"> R</label>
-        <label><input type="checkbox" value="NC-17"> NC-17</label>
-      </div>
-      <label>Audience Rating</label>
-      <div id="filter-rating-range">
-        <label>Min: <span id="min-label">0.0</span></label>
-        <div id="rating-slider"></div>
-        <label>Max: <span id="max-label">10.0</span></label>
-      </div>
-    </div>
-  </form>
-
-  <div class="section" id="results" style="display:none">
-    <div id="overlap-section" class="section" style="display:none">
-      <h3>Overlap Movies</h3>
-      <ul id="overlap-list"></ul>
-    </div>
-
-    <div id="recommendation-section" class="section" style="display:none">
-      <h3>Recommendations</h3>
-      <ul id="recommendation-list"></ul>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
-
-  <script>
-    let userCount = 0;
-
-    function addUser() {
-      userCount++;
-      const container = document.getElementById("users-container");
-      const section = document.createElement("div");
-      section.className = "section";
-      section.innerHTML = `
-        <h3>User ${userCount}</h3>
-        <label>Paste List URL (IMDb / Letterboxd / TMDB)</label>
-        <input 
-          type="text" 
-          id="user${userCount}-url" 
-          class="user-url-input"
-          placeholder="https://letterboxd.com/user/list/..."
-          />
-        <label>Or Manually Add Movies</label>
-        <div id="movie-input-container-${userCount}" class="movie-input-container">
-          <div id="movie-bubbles-${userCount}" class="movie-bubbles"></div>
-          <input
-            type="text"
-            id="movie-input-${userCount}"
-            placeholder="Start typing a movie title…"
-            autocomplete="off"
-          />
-          <ul id="movie-suggestions-${userCount}" class="movie-suggestions"></ul>
-        </div>
-        `
-      container.appendChild(section);
-    }
-
-    // Set up "Add Another User" button and seed two users by default
-    document.getElementById("add-user-btn").addEventListener("click", addUser);
-    addUser();
-    addUser();
-
-    // --- movie picker for each user ---
-    function initMoviePicker(index) {
-      const input       = document.getElementById(`movie-input-${index}`);
-      const bubbles     = document.getElementById(`movie-bubbles-${index}`);
-      const suggestList = document.getElementById(`movie-suggestions-${index}`);
-      const container = document.getElementById(`movie-input-container-${index}`);
-
-      let selected      = [];
-
-      input.addEventListener('input', () => {
-        const q = input.value.trim();
-        if (!q) return suggestList.style.display = 'none';
-
-        fetch(`/search?q=${encodeURIComponent(q)}`)
-          .then(r => r.json())
-          .then(data => {
-            suggestList.innerHTML = '';
-            const hits = (data.results || []).slice(0, 5);
-            if (!hits.length) return suggestList.style.display = 'none';
-
-            hits.forEach(m => {
-              const li = document.createElement('li');
-              const year = m.year ? ` (${m.year})` : "";
-              li.textContent = m.title + year;
-              li.onclick = () => {
-                if (!selected.includes(m.title)) {
-                  selected.push(m.title);
-                  const bub = document.createElement('span');
-                  const year = m.year ? ` (${m.year})` : '';
-                  bub.className = 'movie-bubble';
-                  bub.textContent = m.title + year;
-                  const rem = document.createElement('span');
-                  rem.className = 'remove-movie';
-                  rem.textContent = '×';
-                  rem.onclick = () => {
-                    bubbles.removeChild(bub);
-                    selected = selected.filter(x => x !== m.title);
-                    if (selected.length === 0) {
-                      container.classList.remove('has-movies');
-                    }
-                  };
-                  bub.appendChild(rem);
-                  bubbles.appendChild(bub);
-
-                  container.classList.add('has-movies');
-                }
-                input.value = '';
-                suggestList.style.display = 'none';
-                input.focus();
-
-                
-              };
-              suggestList.appendChild(li);
-            });
-            suggestList.style.display = 'block';
-          })
-          .catch(() => { suggestList.style.display = 'none'; });
-      });
-
-      document.addEventListener('click', e => {
-        if (!document.getElementById(`movie-input-container-${index}`)
-              .contains(e.target)) {
-          suggestList.style.display = 'none';
-        }
-      });
-
-      // expose for form submission
-      window[`selectedMovies${index}`] = () => selected;
-    }
-
-    // after seeding users, init pickers
-    for (let i = 1; i <= userCount; i++) {
-      initMoviePicker(i);
-    }
-
-    // init range slider
-    const ratingSlider = document.getElementById('rating-slider');
-    noUiSlider.create(ratingSlider, {
-      start: [0, 10],
-      connect: true,
-      range: { min: 0, max: 10 },
-      step: 0.1
-    });
-    const minLabel = document.getElementById('min-label');
-    const maxLabel = document.getElementById('max-label');
-    
-    ratingSlider.noUiSlider.on('update', (values) => {
-      minLabel.textContent = parseFloat(values[0]).toFixed(1);
-      maxLabel.textContent = parseFloat(values[1]).toFixed(1);
-    });
-
-    // filter toggle logic
-    document.getElementById("filter-toggle").addEventListener("click", () => {
-    const box = document.getElementById("filter-box");
-    const visible = box.style.display === "block";
-    box.style.display = visible ? "none" : "block";
-    });
-
-    document.getElementById("recommendation-form").addEventListener("submit", async function(event) {
-      event.preventDefault();
-
-      const users = [];
-      for (let i = 1; i <= userCount; i++) {
-        const url    = document.getElementById(`user${i}-url`).value.trim();
-        const manual   = window[`selectedMovies${i}`]() || [];
-        if (url) {
-          users.push(url);
-        } else if (manual.length) {
-          users.push(manual);
-        }
+     textarea, input[type=text] {
+       width: 100%;
+       padding: 0.5rem;
+       margin: 0.5rem 0;
+       border: 1px solid #444;
+       border-radius: 4px;
+       background-color: #1e1e1e;
+       color: #f1f1f1;
+     }
+     button {
+       padding: 0.7rem 1.2rem;
+       font-size: 1rem;
+       margin-top: 1rem;
+       background-color: #3FB8AF;
+       color: white;
+       border: none;
+       border-radius: 4px;
+       cursor: pointer;
+     }
+     button:hover {
+       background-color: #30928c;
+     }
+     button.summary-toggle {
+     padding: 0.2rem 0.4rem;    
+     font-size: 0.8rem;        
+     background: none;         
+     border: none;             
+     color: #3FB8AF;           
+     cursor: pointer;           
+     margin-top: 0;             
+     margin-left: 0.5rem;       
+     }
+     button.summary-toggle:hover {
+       background: none;         
+     }
+     input[type="checkbox"] {
+       accent-color: #3FB8AF;
+     }
+     .section {
+       background: #1e1e1e;
+       padding: 1rem;
+       margin-bottom: 1.5rem;
+       border-radius: 6px;
+       box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+     }
+     ul {
+       padding-left: 1.2rem;
+     }
+     li {
+       margin-bottom: 1rem;
+     }
+     /* Add space after url input box */
+     input.user-url-input {
+       margin-bottom: 1rem;
+     }
+     /* Manually input movies styling */
+      .movie-input-container {
+       position: relative;
+       margin-top: 0;
+     }
+     .movie-input-container.has-movies {
+       /* add gap when bubbles are present */
+       margin-top: 1rem;
+     }
+     .movie-bubbles {
+       display: flex;
+       flex-wrap: wrap;
+       gap: 0.5rem;
+       margin-bottom: 0.5rem;
       }
-
-      const includeText = document.getElementById("filter-include").value.trim();
-      const excludeText = document.getElementById("filter-exclude").value.trim();
-      const include = includeText ? includeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
-      const exclude = excludeText ? excludeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
-      const contentRatings = Array.from(document.querySelectorAll('#filter-content-ratings input:checked')).map(cb => cb.value);
-      const [minRating, maxRating] = ratingSlider.noUiSlider.get().map(v => parseFloat(v));
-      const payload = { users, include, exclude, content_ratings: contentRatings, rating_min: minRating, rating_max: maxRating, genres: selectedGenres };
-      const resp = await fetch("/recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await resp.json();
-
-      const resultsDiv  = document.getElementById("results");
-      const overlapSec  = document.getElementById("overlap-section");
-      const overlapList = document.getElementById("overlap-list");
-      const recSec      = document.getElementById("recommendation-section");
-      const recList     = document.getElementById("recommendation-list");
-
-      // clear previous
-      overlapList.innerHTML = "";
-      recList.innerHTML     = "";
-
-      resultsDiv.style.display = "block";
-
-      // Overlap Movies
-      if (data.overlap && data.overlap.length) {
-        overlapSec.style.display = "block";
-        data.overlap.forEach(m => {
-          const li = document.createElement("li");
-          li.innerHTML = `
-            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
-            <button class="summary-toggle">▼</button>
-            <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
-            <div class="summary" style="display:none">${m.summary||"No summary."}</div>
-          `;
-          const btn = li.querySelector(".summary-toggle");
-          btn.onclick = e => {
-            const summ = li.querySelector(".summary");
-            const show = summ.style.display === "none";
-            summ.style.display = show ? "block" : "none";
-            e.target.textContent = show ? "▲" : "▼";
-          };
-          overlapList.appendChild(li);
-        });
-      } else {
-        overlapSec.style.display = "none";
-      }
-
-      // Recommendations
-      if (data.recommendations && data.recommendations.length) {
-        recSec.style.display = "block";
-        data.recommendations.forEach(m => {
-          const li = document.createElement("li");
-          li.innerHTML = `
-            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
-            <button class="summary-toggle">▼</button>
-            <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
-            <div class="summary" style="display:none">${m.summary||"No summary."}</div>
-          `;
-          const btn = li.querySelector(".summary-toggle");
-          btn.onclick = e => {
-            const summ = li.querySelector(".summary");
-            const show = summ.style.display === "none";
-            summ.style.display = show ? "block" : "none";
-            e.target.textContent = show ? "▲" : "▼";
-          };
-          recList.appendChild(li);
-        });
-      } else {
-        recSec.style.display = "none";
-      }
-
-      // Fallback if no results at all
-      if ((!data.overlap || data.overlap.length === 0) &&
-          (!data.recommendations || data.recommendations.length === 0)) {
-        recSec.style.display = "block";
-        recList.innerHTML = "<li>No overlap or recommendations found.</li>";
-      }
-    });
-
-       // --- dynamic genre autocomplete & bubble picker ---
-       let GENRE_LIST = [];
-       let selectedGenres = [];
-       // Fetch TMDB genres
-       fetch('/genres')
-         .then(res => res.json())
-         .then(data => { GENRE_LIST = data.genres || []; })
-         .catch(() => { GENRE_LIST = []; });
-     
-       const genreInput       = document.getElementById('filter-genres-input');
-       const genreBubbles     = document.getElementById('genre-bubbles');
-       const genreSuggestions = document.getElementById('genre-suggestions');
-     
-       // Show suggestions as you type
-       genreInput.addEventListener('input', () => {
-         const val = genreInput.value.trim().toLowerCase();
-         const matches = val
-           ? GENRE_LIST.filter(g =>
-               g.toLowerCase().startsWith(val) && !selectedGenres.includes(g)
-             )
-           : [];
-         genreSuggestions.innerHTML = '';
-         if (!matches.length) return genreSuggestions.style.display = 'none';
-     
-         matches.forEach(g => {
-           const li = document.createElement('li');
-           li.textContent = g;
-           li.onclick = () => {
-             // create bubble
-             selectedGenres.push(g);
-             const bubble = document.createElement('span');
-             bubble.className = 'genre-bubble';
-             bubble.textContent = g;
-             const remove = document.createElement('span');
-             remove.className = 'remove-genre';
-             remove.textContent = '×';
-             remove.onclick = () => {
-               genreBubbles.removeChild(bubble);
-               selectedGenres = selectedGenres.filter(x => x !== g);
-               // if no genres left, remove spacing
-               if (selectedGenres.length === 0) {
-                  document.getElementById('filter-genres-container')
-                  .classList.remove('has-genres');
-               }
-             };
-             bubble.appendChild(remove);
-             genreBubbles.appendChild(bubble);
-             // ensure spacing once a genre is added
-             document.getElementById('filter-genres-container')
-                .classList.add('has-genres');
-             // reset
-             genreInput.value = '';
-             genreSuggestions.style.display = 'none';
-             genreInput.focus();
-           };
-           genreSuggestions.appendChild(li);
-         });
-         genreSuggestions.style.display = 'block';
+     .movie-bubble {
+       background: #3FB8AF;
+       color: #fff;
+       padding: 0.3rem 0.6rem;
+       border-radius: 1rem;
+       font-size: 0.9rem;
+       display: inline-flex;
+       align-items: center;
+     }
+     .remove-movie {
+       margin-left: 0.4rem;
+       cursor: pointer;
+       font-weight: bold;
+     }
+     .movie-suggestions {
+       position: absolute;
+       top: 100%;
+       left: 0;
+       right: 0;
+       background: #1e1e1e;
+       border: 1px solid #444;
+       border-radius: 4px;
+       max-height: 150px;
+       overflow-y: auto;
+       margin-top: 0.2rem;
+       padding: 0;
+       list-style: none;
+       display: none;
+       z-index: 10;
+     }
+     .movie-suggestions li {
+       padding: 0.5rem;
+       cursor: pointer;
+     }
+     .movie-suggestions li:hover {
+       background: #444;
+     }
+ 
+     .summary {
+       font-size: 0.9rem;
+       color: #bbbbbb;
+     }
+     .content-rating {
+       font-size: 0.9rem;
+       color: #bbbbbb;
+       margin-top: 0.2rem;
+       margin-bottom: 0.8rem;
+     }
+     #filter-exclude {
+       margin-bottom: 1rem;
+     }
+ 
+     #filter-content-ratings {
+       margin-bottom: 1rem;
+     }
+   /* Audience rating filter styling */
+     #filter-rating-range {
+       display: flex;
+       align-items: center;
+       margin: .5rem 0; 
+     }
+     #filter-rating-range > label {
+     flex: none;
+     white-space: nowrap;
+     }
+     #rating-slider {
+       flex: 1;
+       margin: 0 1.5rem;
+       max-width: 700px;
+     }
+   /* genre filter styling */
+     #filter-genres-container {
+       position: relative;
+       margin-top: 0rem;
+     }
+     #filter-genres-container.has-genres {
+       margin-top: 1rem; 
+     }
+     #filter-genres-input {
+       margin-bottom: 1rem; 
+     }
+     #genre-bubbles {
+       display: flex;
+       flex-wrap: wrap;
+       gap: 0.5rem;
+       margin-bottom: 0.5rem;
+     }
+     .genre-bubble {
+       background: #3FB8AF;
+       color: #fff;
+       padding: 0.3rem 0.6rem;
+       border-radius: 1rem;
+       font-size: 0.9rem;
+       display: inline-flex;
+       align-items: center;
+     }
+     .remove-genre {
+       margin-left: 0.4rem;
+       cursor: pointer;
+       font-weight: bold;
+     }
+     #genre-suggestions {
+       position: absolute;
+       top: 100%; left: 0; right: 0;
+       background: #1e1e1e;
+       border: 1px solid #444;
+       border-radius: 4px;
+       max-height: 150px;
+       overflow-y: auto;
+       margin-top: 0.2rem;
+       padding: 0;
+       list-style: none;
+       display: none;
+       z-index: 10;
+     }
+     #genre-suggestions li {
+       padding: 0.5rem;
+       cursor: pointer;
+     }
+     #genre-suggestions li:hover {
+       background: #444;
+ 
+     }
+     .saved-movie {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 10px;
+ }
+ 
+ .delete-movie {
+   background-color: #e74c3c;
+   color: white;
+   padding: 5px 8px;
+   font-size: 0.8rem;
+   border: none;
+   border-radius: 4px;
+   cursor: pointer;
+ }
+ 
+ .delete-movie:hover {
+   background-color: #c0392b;
+ }
+ 
+ .save-movie {
+   background-color: #2ecc71;
+   color: white;
+   padding: 5px 8px;
+   font-size: 0.8rem;
+   border: none;
+   border-radius: 4px;
+   cursor: pointer;
+   margin-left: 10px;
+ }
+ 
+ .save-movie:hover {
+   background-color: #27ae60;
+ }
+ 
+ #saved-movies-list {
+   margin-top: 10px;
+ }
+ 
+ #saved-movies-list li {
+   padding: 8px 0;
+   border-bottom: 1px solid #444;
+ }
+ 
+ #saved-movies-list li:last-child {
+   border-bottom: none;
+ }
+   </style>
+ </head>
+ 
+ <body>
+ 
+   <div class="section" id="instructions">
+     <h2>Instructions</h2>
+     <ul>
+       <li>Paste the URL to an IMDb, Letterboxd, or TMDB list or type movie titles manually for each user.</li>
+       <li>Click <strong>Add Another User</strong> to include more users in the comparison.</li>
+       <li>Use <strong>Filter Results</strong> to refine by keywords, content ratings, or audience ratings.</li>
+       <li>Once ready, click <strong>Get Recommendations</strong> to fetch overlap movies and personalized suggestions.</li>
+     </ul>
+   </div>
+ 
+   <form id="recommendation-form">
+     <div id="users-container"></div>
+     <button type="button" id="add-user-btn">➕ Add Another User</button>
+     <br/>
+     <button type="submit">Get Recommendations</button>
+     <button type="button" id="filter-toggle" class="filter-toggle">Filter Results</button>
+     <div id="filter-box" class="section" style="display:none">
+       <label>Genres</label>
+         <div id="filter-genres-container">
+           <div id="genre-bubbles"></div>
+           <input
+             type="text"
+             id="filter-genres-input"
+             placeholder="Type a genre"
+             autocomplete="off"
+           />
+           <ul id="genre-suggestions"></ul>
+         </div>
+       <label>Include Words (comma separated)</label>
+       <input type="text" id="filter-include" placeholder="Superheroes, Magic">
+       <label>Exclude Words (comma separated)</label>
+       <input type="text" id="filter-exclude" placeholder="Superheroes, Magic">
+       <label>Content Ratings</label>
+       <div id="filter-content-ratings">
+         <label><input type="checkbox" value="G"> G</label>
+         <label><input type="checkbox" value="PG"> PG</label>
+         <label><input type="checkbox" value="PG-13"> PG-13</label>
+         <label><input type="checkbox" value="R"> R</label>
+         <label><input type="checkbox" value="NC-17"> NC-17</label>
+       </div>
+       <label>Audience Rating</label>
+       <div id="filter-rating-range">
+         <label>Min: <span id="min-label">0.0</span></label>
+         <div id="rating-slider"></div>
+         <label>Max: <span id="max-label">10.0</span></label>
+       </div>
+     </div>
+   </form>
+ 
+   <div class="section" id="results" style="display:none">
+     <div id="overlap-section" class="section" style="display:none">
+       <h3>Overlap Movies</h3>
+       <ul id="overlap-list"></ul>
+     </div>
+ 
+     <div id="recommendation-section" class="section" style="display:none">
+       <h3>Recommendations</h3>
+       <ul id="recommendation-list"></ul>
+     </div>
+   </div>
+ 
+   <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
+ 
+   <script>
+     let userCount = 0;
+ 
+     function addUser() {
+       userCount++;
+       const container = document.getElementById("users-container");
+       const section = document.createElement("div");
+       section.className = "section";
+       section.innerHTML = `
+         <h3>User ${userCount}</h3>
+         <label>Paste List URL (IMDb / Letterboxd / TMDB)</label>
+         <input 
+           type="text" 
+           id="user${userCount}-url" 
+           class="user-url-input"
+           placeholder="https://letterboxd.com/user/list/..."
+           />
+         <label>Or Manually Add Movies</label>
+         <div id="movie-input-container-${userCount}" class="movie-input-container">
+           <div id="movie-bubbles-${userCount}" class="movie-bubbles"></div>
+           <input
+             type="text"
+             id="movie-input-${userCount}"
+             placeholder="Start typing a movie title…"
+             autocomplete="off"
+           />
+           <ul id="movie-suggestions-${userCount}" class="movie-suggestions"></ul>
+         </div>
+         `
+       container.appendChild(section);
+     }
+ 
+     // Set up "Add Another User" button and seed two users by default
+     document.getElementById("add-user-btn").addEventListener("click", addUser);
+     addUser();
+     addUser();
+ 
+     // --- movie picker for each user ---
+     function initMoviePicker(index) {
+       const input       = document.getElementById(`movie-input-${index}`);
+       const bubbles     = document.getElementById(`movie-bubbles-${index}`);
+       const suggestList = document.getElementById(`movie-suggestions-${index}`);
+       const container = document.getElementById(`movie-input-container-${index}`);
+ 
+       let selected      = [];
+ 
+       input.addEventListener('input', () => {
+         const q = input.value.trim();
+         if (!q) return suggestList.style.display = 'none';
+ 
+         fetch(`/search?q=${encodeURIComponent(q)}`)
+           .then(r => r.json())
+           .then(data => {
+             suggestList.innerHTML = '';
+             const hits = (data.results || []).slice(0, 5);
+             if (!hits.length) return suggestList.style.display = 'none';
+ 
+             hits.forEach(m => {
+               const li = document.createElement('li');
+               const year = m.year ? ` (${m.year})` : "";
+               li.textContent = m.title + year;
+               li.onclick = () => {
+                 if (!selected.includes(m.title)) {
+                   selected.push(m.title);
+                   const bub = document.createElement('span');
+                   const year = m.year ? ` (${m.year})` : '';
+                   bub.className = 'movie-bubble';
+                   bub.textContent = m.title + year;
+                   const rem = document.createElement('span');
+                   rem.className = 'remove-movie';
+                   rem.textContent = '×';
+                   rem.onclick = () => {
+                     bubbles.removeChild(bub);
+                     selected = selected.filter(x => x !== m.title);
+                     if (selected.length === 0) {
+                       container.classList.remove('has-movies');
+                     }
+                   };
+                   bub.appendChild(rem);
+                   bubbles.appendChild(bub);
+ 
+                   container.classList.add('has-movies');
+                 }
+                 input.value = '';
+                 suggestList.style.display = 'none';
+                 input.focus();
+ 
+ 
+               };
+               suggestList.appendChild(li);
+             });
+             suggestList.style.display = 'block';
+           })
+           .catch(() => { suggestList.style.display = 'none'; });
        });
-     
-       // Hide dropdown if clicking outside
+ 
        document.addEventListener('click', e => {
-         if (!document.getElementById('filter-genres-container').contains(e.target)) {
-           genreSuggestions.style.display = 'none';
+         if (!document.getElementById(`movie-input-container-${index}`)
+               .contains(e.target)) {
+           suggestList.style.display = 'none';
          }
        });
-  </script>
-  
-<div class="section" id="login-section">
-  <h2>User Account</h2>
-  <div id="login-container">
-    <div id="login-form" class="auth-form">
-      <h3>Login</h3>
-      <input type="email" id="login-email" placeholder="Email" required>
-      <input type="password" id="login-password" placeholder="Password" required>
-      <button type="button" id="login-btn">Login</button>
-      <p>Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
-    </div>
-    
-    <div id="signup-form" class="auth-form" style="display:none">
-      <h3>Create Account</h3>
-      <input type="text" id="signup-name" placeholder="Name" required>
-      <input type="email" id="signup-email" placeholder="Email" required>
-      <input type="password" id="signup-password" placeholder="Password" required>
-      <button type="button" id="signup-btn">Sign Up</button>
-      <p>Already have an account? <a href="#" id="show-login">Login</a></p>
-    </div>
-    
-    <div id="user-profile" style="display:none">
-      <h3>Welcome, <span id="user-name">User</span>!</h3>
-      <button type="button" id="logout-btn">Logout</button>
-      
-      <div class="section" id="saved-movies-section">
-        <h3>Your Saved Movies</h3>
-        <ul id="saved-movies-list"></ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<script type="module">
-  // Import Firebase modules
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
-  import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-  
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyD1wAKyRzU9EavqFUgvofwelpj7gM79sbY",
-    authDomain: "moviepicker-e14f4.firebaseapp.com",
-    projectId: "moviepicker-e14f4",
-    storageBucket: "moviepicker-e14f4.firebasestorage.app",
-    messagingSenderId: "164660100747",
-    appId: "1:164660100747:web:bb074c168dc4b7f5131e8e",
-    measurementId: "G-YJF568XBTE"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const analytics = getAnalytics(app);
-  
-  // All Firebase functionality in one module
-  document.addEventListener('DOMContentLoaded', function() {
-    // Get UI elements
-    const loginForm = document.getElementById('login-form');
-    const signupForm = document.getElementById('signup-form');
-    const userProfile = document.getElementById('user-profile');
-    const movieSection = document.getElementById('recommendation-form');
-    
-    // Login elements
-    const loginEmail = document.getElementById('login-email');
-    const loginPassword = document.getElementById('login-password');
-    const loginBtn = document.getElementById('login-btn');
-    
-    // Signup elements
-    const signupName = document.getElementById('signup-name');
-    const signupEmail = document.getElementById('signup-email');
-    const signupPassword = document.getElementById('signup-password');
-    const signupBtn = document.getElementById('signup-btn');
-    
-    // Profile elements
-    const userName = document.getElementById('user-name');
-    const logoutBtn = document.getElementById('logout-btn');
-    
-    // Toggle links
-    const showSignupLink = document.getElementById('show-signup');
-    const showLoginLink = document.getElementById('show-login');
-    
-    // Toggle between login and signup forms
-    showSignupLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      loginForm.style.display = 'none';
-      signupForm.style.display = 'block';
-    });
-    
-    showLoginLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      signupForm.style.display = 'none';
-      loginForm.style.display = 'block';
-    });
-    
-    // Login functionality
-    loginBtn.addEventListener('click', () => {
-      const email = loginEmail.value;
-      const password = loginPassword.value;
-      
-      if (!email || !password) {
-        alert('Please enter both email and password');
-        return;
-      }
-      
-      signInWithEmailAndPassword(auth, email, password)
-        .catch(error => {
-          console.error('Login error:', error);
-          alert('Login failed: ' + error.message);
-        });
-    });
-    
-    // Signup functionality
-    signupBtn.addEventListener('click', () => {
-      const name = signupName.value;
-      const email = signupEmail.value;
-      const password = signupPassword.value;
-      
-      if (!name || !email || !password) {
-        alert('Please fill out all fields');
-        return;
-      }
-      
-      createUserWithEmailAndPassword(auth, email, password)
-        .then(userCredential => {
-          return updateProfile(userCredential.user, {
-            displayName: name
+ 
+       // expose for form submission
+       window[`selectedMovies${index}`] = () => selected;
+     }
+ 
+     // after seeding users, init pickers
+     for (let i = 1; i <= userCount; i++) {
+       initMoviePicker(i);
+     }
+ 
+     // init range slider
+     const ratingSlider = document.getElementById('rating-slider');
+     noUiSlider.create(ratingSlider, {
+       start: [0, 10],
+       connect: true,
+       range: { min: 0, max: 10 },
+       step: 0.1
+     });
+     const minLabel = document.getElementById('min-label');
+     const maxLabel = document.getElementById('max-label');
+ 
+     ratingSlider.noUiSlider.on('update', (values) => {
+       minLabel.textContent = parseFloat(values[0]).toFixed(1);
+       maxLabel.textContent = parseFloat(values[1]).toFixed(1);
+     });
+ 
+     // filter toggle logic
+     document.getElementById("filter-toggle").addEventListener("click", () => {
+     const box = document.getElementById("filter-box");
+     const visible = box.style.display === "block";
+     box.style.display = visible ? "none" : "block";
+     });
+ 
+     document.getElementById("recommendation-form").addEventListener("submit", async function(event) {
+       event.preventDefault();
+ 
+       const users = [];
+       for (let i = 1; i <= userCount; i++) {
+         const url    = document.getElementById(`user${i}-url`).value.trim();
+         const manual   = window[`selectedMovies${i}`]() || [];
+         if (url) {
+           users.push(url);
+         } else if (manual.length) {
+           users.push(manual);
+         }
+       }
+ 
+       const includeText = document.getElementById("filter-include").value.trim();
+       const excludeText = document.getElementById("filter-exclude").value.trim();
+       const include = includeText ? includeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+       const exclude = excludeText ? excludeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+       const contentRatings = Array.from(document.querySelectorAll('#filter-content-ratings input:checked')).map(cb => cb.value);
+       const [minRating, maxRating] = ratingSlider.noUiSlider.get().map(v => parseFloat(v));
+       const payload = { users, include, exclude, content_ratings: contentRatings, rating_min: minRating, rating_max: maxRating, genres: selectedGenres };
+       const resp = await fetch("/recommendations", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify(payload)
+       });
+       const data = await resp.json();
+ 
+       const resultsDiv  = document.getElementById("results");
+       const overlapSec  = document.getElementById("overlap-section");
+       const overlapList = document.getElementById("overlap-list");
+       const recSec      = document.getElementById("recommendation-section");
+       const recList     = document.getElementById("recommendation-list");
+ 
+       // clear previous
+       overlapList.innerHTML = "";
+       recList.innerHTML     = "";
+ 
+       resultsDiv.style.display = "block";
+ 
+       // Overlap Movies
+       if (data.overlap && data.overlap.length) {
+         overlapSec.style.display = "block";
+         data.overlap.forEach(m => {
+           const li = document.createElement("li");
+           li.innerHTML = `
+             <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
+             <button class="summary-toggle">▼</button>
+             <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
+             <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+           `;
+           const btn = li.querySelector(".summary-toggle");
+           btn.onclick = e => {
+             const summ = li.querySelector(".summary");
+             const show = summ.style.display === "none";
+             summ.style.display = show ? "block" : "none";
+             e.target.textContent = show ? "▲" : "▼";
+           };
+           overlapList.appendChild(li);
+         });
+       } else {
+         overlapSec.style.display = "none";
+       }
+ 
+       // Recommendations
+       if (data.recommendations && data.recommendations.length) {
+         recSec.style.display = "block";
+         data.recommendations.forEach(m => {
+           const li = document.createElement("li");
+           li.innerHTML = `
+             <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
+             <button class="summary-toggle">▼</button>
+             <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
+             <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+           `;
+           const btn = li.querySelector(".summary-toggle");
+           btn.onclick = e => {
+             const summ = li.querySelector(".summary");
+             const show = summ.style.display === "none";
+             summ.style.display = show ? "block" : "none";
+             e.target.textContent = show ? "▲" : "▼";
+           };
+           recList.appendChild(li);
+         });
+       } else {
+         recSec.style.display = "none";
+       }
+ 
+       // Fallback if no results at all
+       if ((!data.overlap || data.overlap.length === 0) &&
+           (!data.recommendations || data.recommendations.length === 0)) {
+         recSec.style.display = "block";
+         recList.innerHTML = "<li>No overlap or recommendations found.</li>";
+       }
+     });
+ 
+        // --- dynamic genre autocomplete & bubble picker ---
+        let GENRE_LIST = [];
+        let selectedGenres = [];
+        // Fetch TMDB genres
+        fetch('/genres')
+          .then(res => res.json())
+          .then(data => { GENRE_LIST = data.genres || []; })
+          .catch(() => { GENRE_LIST = []; });
+ 
+        const genreInput       = document.getElementById('filter-genres-input');
+        const genreBubbles     = document.getElementById('genre-bubbles');
+        const genreSuggestions = document.getElementById('genre-suggestions');
+ 
+        // Show suggestions as you type
+        genreInput.addEventListener('input', () => {
+          const val = genreInput.value.trim().toLowerCase();
+          const matches = val
+            ? GENRE_LIST.filter(g =>
+                g.toLowerCase().startsWith(val) && !selectedGenres.includes(g)
+              )
+            : [];
+          genreSuggestions.innerHTML = '';
+          if (!matches.length) return genreSuggestions.style.display = 'none';
+ 
+          matches.forEach(g => {
+            const li = document.createElement('li');
+            li.textContent = g;
+            li.onclick = () => {
+              // create bubble
+              selectedGenres.push(g);
+              const bubble = document.createElement('span');
+              bubble.className = 'genre-bubble';
+              bubble.textContent = g;
+              const remove = document.createElement('span');
+              remove.className = 'remove-genre';
+              remove.textContent = '×';
+              remove.onclick = () => {
+                genreBubbles.removeChild(bubble);
+                selectedGenres = selectedGenres.filter(x => x !== g);
+                // if no genres left, remove spacing
+                if (selectedGenres.length === 0) {
+                   document.getElementById('filter-genres-container')
+                   .classList.remove('has-genres');
+                }
+              };
+              bubble.appendChild(remove);
+              genreBubbles.appendChild(bubble);
+              // ensure spacing once a genre is added
+              document.getElementById('filter-genres-container')
+                 .classList.add('has-genres');
+              // reset
+              genreInput.value = '';
+              genreSuggestions.style.display = 'none';
+              genreInput.focus();
+            };
+            genreSuggestions.appendChild(li);
           });
-        })
-        .catch(error => {
-          console.error('Signup error:', error);
-          alert('Sign up failed: ' + error.message);
+          genreSuggestions.style.display = 'block';
         });
-    });
-    
-    // Logout functionality
-    logoutBtn.addEventListener('click', () => {
-      signOut(auth)
-        .catch(error => {
-          console.error('Logout error:', error);
-          alert('Logout failed: ' + error.message);
+ 
+        // Hide dropdown if clicking outside
+        document.addEventListener('click', e => {
+          if (!document.getElementById('filter-genres-container').contains(e.target)) {
+            genreSuggestions.style.display = 'none';
+          }
         });
-    });
-    
-    // Auth state changes
-    onAuthStateChanged(auth, user => {
-      console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
-      
-      if (user) {
-        // User is signed in
-        userName.textContent = user.displayName || user.email;
-        loginForm.style.display = 'none';
-        signupForm.style.display = 'none';
-        userProfile.style.display = 'block';
-        
-        // Enable movie picker functionality
-        if (movieSection) {
-          movieSection.style.display = 'block';
-        }
-      } else {
-        // User is signed out
-        loginForm.style.display = 'block';
-        signupForm.style.display = 'none';
-        userProfile.style.display = 'none';
-      }
-    });
-  });
-  // Import Firestore
-import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// Initialize Firestore
-const db = getFirestore(app);
-
-// Function to save a movie to the user's collection
-async function saveMovie(userId, movie) {
-  try {
-    // Add a document to the "savedMovies" collection
-    await addDoc(collection(db, "savedmovies"), {
-      userId: userId,
-      title: movie.title,
-      year: movie.year || movie.release_date?.split("-")[0] || "",
-      rating: movie.rating || "",
-      content_rating: movie.content_rating || "",
-      summary: movie.summary || "",
-      savedAt: new Date().toISOString()
-    });
-    
-    alert("Movie saved to your collection!");
-    
-    // Refresh the saved movies list
-    await loadSavedMovies(userId);
-  } catch (error) {
-    console.error("Error saving movie: ", error);
-    alert("Failed to save movie: " + error.message);
-  }
-}
-
-// Function to load saved movies for a user
-async function loadSavedMovies(userId) {
-  try {
-    const savedMoviesCollection = collection(db, "savedmovies");
-    const userMoviesQuery = query(savedMoviesCollection, where("userId", "==", userId));
-    
-    const querySnapshot = await getDocs(userMoviesQuery);
-    const savedMoviesList = document.getElementById('saved-movies-list');
-    savedMoviesList.innerHTML = '';
-    
-    if (querySnapshot.empty) {
-      savedMoviesList.innerHTML = '<li>No saved movies yet.</li>';
-      return;
-    }
-    
-    querySnapshot.forEach((doc) => {
-      const movieData = doc.data();
-      const li = document.createElement('li');
-      
-      // Create movie item with title, year, and delete button
-      li.innerHTML = `
-        <div class="saved-movie">
-          <span><strong>${movieData.title}</strong> ${movieData.year ? `(${movieData.year})` : ''}</span>
-          <button class="delete-movie" data-id="${doc.id}">Remove</button>
-        </div>
-      `;
-      
-      savedMoviesList.appendChild(li);
-    });
-    
-    // Add event listeners to delete buttons
-    document.querySelectorAll('.delete-movie').forEach(button => {
-      button.addEventListener('click', async (e) => {
-        const movieId = e.target.getAttribute('data-id');
-        await deleteMovie(movieId, userId);
-      });
-    });
-  } catch (error) {
-    console.error("Error loading saved movies: ", error);
-    const savedMoviesList = document.getElementById('saved-movies-list');
-    savedMoviesList.innerHTML = '<li>Error loading saved movies.</li>';
-  }
-}
-
-// Function to delete a movie from the user's collection
-async function deleteMovie(movieId, userId) {
-  try {
-    await deleteDoc(doc(db, "savedMovies", movieId));
-    alert("Movie removed from your collection!");
-    
-    // Refresh the saved movies list
-    await loadSavedMovies(userId);
-  } catch (error) {
-    console.error("Error deleting movie: ", error);
-    alert("Failed to remove movie: " + error.message);
-  }
-}
-// Function to add save buttons to movie results
-function addSaveButtons() {
-  // For overlap movies
-  const overlapItems = document.querySelectorAll('#overlap-list li');
-  overlapItems.forEach(item => {
-    if (!item.querySelector('.save-movie')) {
-      const title = item.querySelector('strong').textContent;
-      const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
-      const year = yearMatch ? yearMatch[1] : "";
-      const summary = item.querySelector('.summary').textContent;
-      const contentRatingText = item.querySelector('.content-rating').textContent;
-      const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
-      const rating = ratingMatch ? ratingMatch[1] : "";
-      const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
-      const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
-      
-      const saveButton = document.createElement('button');
-      saveButton.className = 'save-movie';
-      saveButton.textContent = 'Save';
-      saveButton.style.marginLeft = '10px';
-      saveButton.onclick = () => {
-        const user = auth.currentUser;
-        if (user) {
-          saveMovie(user.uid, {
-            title,
-            year,
-            summary,
-            rating,
-            content_rating: contentRating
-          });
-        } else {
-          alert("Please log in to save movies");
-        }
-      };
-      
-      // Insert button after the title
-      const titleElement = item.querySelector('strong').parentNode;
-      titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
-    }
-  });
-  
-  // For recommended movies
-  const recommendationItems = document.querySelectorAll('#recommendation-list li');
-  recommendationItems.forEach(item => {
-    if (!item.querySelector('.save-movie')) {
-      const title = item.querySelector('strong').textContent;
-      const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
-      const year = yearMatch ? yearMatch[1] : "";
-      const summary = item.querySelector('.summary').textContent;
-      const contentRatingText = item.querySelector('.content-rating').textContent;
-      const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
-      const rating = ratingMatch ? ratingMatch[1] : "";
-      const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
-      const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
-      
-      const saveButton = document.createElement('button');
-      saveButton.className = 'save-movie';
-      saveButton.textContent = 'Save';
-      saveButton.style.marginLeft = '10px';
-      saveButton.onclick = () => {
-        const user = auth.currentUser;
-        if (user) {
-          saveMovie(user.uid, {
-            title,
-            year,
-            summary,
-            rating,
-            content_rating: contentRating
-          });
-        } else {
-          alert("Please log in to save movies");
-        }
-      };
-      
-      // Insert button after the title
-      const titleElement = item.querySelector('strong').parentNode;
-      titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
-    }
-  });
-}
-
-// Add this inside your onAuthStateChanged listener (where you handle user login state)
-onAuthStateChanged(auth, user => {
-  console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
-  
-  if (user) {
-    // User is signed in
-    userName.textContent = user.displayName || user.email;
-    loginForm.style.display = 'none';
-    signupForm.style.display = 'none';
-    userProfile.style.display = 'block';
-    
-    // Enable movie picker functionality
-    if (movieSection) {
-      movieSection.style.display = 'block';
-    }
-    
-    // Load the user's saved movies
-    loadSavedMovies(user.uid);
-  } else {
-    // User is signed out
-    loginForm.style.display = 'block';
-    signupForm.style.display = 'none';
-    userProfile.style.display = 'none';
-  }
-});
-
-
-document.getElementById("recommendation-form").addEventListener("submit", async function(event) {
-  event.preventDefault();
-
-  const users = [];
-  for (let i = 1; i <= userCount; i++) {
-    const url    = document.getElementById(`user${i}-url`).value.trim();
-    const manual   = window[`selectedMovies${i}`]() || [];
-    if (url) {
-      users.push(url);
-    } else if (manual.length) {
-      users.push(manual);
-    }
-  }
-
-  const includeText = document.getElementById("filter-include").value.trim();
-  const excludeText = document.getElementById("filter-exclude").value.trim();
-  const include = includeText ? includeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
-  const exclude = excludeText ? excludeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
-  const contentRatings = Array.from(document.querySelectorAll('#filter-content-ratings input:checked')).map(cb => cb.value);
-  const [minRating, maxRating] = ratingSlider.noUiSlider.get().map(v => parseFloat(v));
-  const payload = { users, include, exclude, content_ratings: contentRatings, rating_min: minRating, rating_max: maxRating, genres: selectedGenres };
-  const resp = await fetch("/recommendations", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const data = await resp.json();
-
-  const resultsDiv  = document.getElementById("results");
-  const overlapSec  = document.getElementById("overlap-section");
-  const overlapList = document.getElementById("overlap-list");
-  const recSec      = document.getElementById("recommendation-section");
-  const recList     = document.getElementById("recommendation-list");
-
-  // clear previous
-  overlapList.innerHTML = "";
-  recList.innerHTML     = "";
-
-  resultsDiv.style.display = "block";
-
-  // Overlap Movies
-  if (data.overlap && data.overlap.length) {
-    overlapSec.style.display = "block";
-    data.overlap.forEach(m => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
-        <button class="summary-toggle">▼</button>
-        <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
-        <div class="summary" style="display:none">${m.summary||"No summary."}</div>
-      `;
-      const btn = li.querySelector(".summary-toggle");
-      btn.onclick = e => {
-        const summ = li.querySelector(".summary");
-        const show = summ.style.display === "none";
-        summ.style.display = show ? "block" : "none";
-        e.target.textContent = show ? "▲" : "▼";
-      };
-      overlapList.appendChild(li);
-    });
-  } else {
-    overlapSec.style.display = "none";
-  }
-
-  // Recommendations
-  if (data.recommendations && data.recommendations.length) {
-    recSec.style.display = "block";
-    data.recommendations.forEach(m => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
-        <button class="summary-toggle">▼</button>
-        <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
-        <div class="summary" style="display:none">${m.summary||"No summary."}</div>
-      `;
-      const btn = li.querySelector(".summary-toggle");
-      btn.onclick = e => {
-        const summ = li.querySelector(".summary");
-        const show = summ.style.display === "none";
-        summ.style.display = show ? "block" : "none";
-        e.target.textContent = show ? "▲" : "▼";
-      };
-      recList.appendChild(li);
-    });
-  } else {
-    recSec.style.display = "none";
-  }
-
-  // Fallback if no results at all
-  if ((!data.overlap || data.overlap.length === 0) &&
-      (!data.recommendations || data.recommendations.length === 0)) {
-    recSec.style.display = "block";
-    recList.innerHTML = "<li>No overlap or recommendations found.</li>";
-  }
-  
-  // Add this line to add save buttons to all movie results
-  addSaveButtons();
-});
-</script>
-</body>
-</html>
+   </script>
+ 
+ <div class="section" id="login-section">
+   <h2>User Account</h2>
+   <div id="login-container">
+     <div id="login-form" class="auth-form">
+       <h3>Login</h3>
+       <input type="email" id="login-email" placeholder="Email" required>
+       <input type="password" id="login-password" placeholder="Password" required>
+       <button type="button" id="login-btn">Login</button>
+       <p>Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
+     </div>
+ 
+     <div id="signup-form" class="auth-form" style="display:none">
+       <h3>Create Account</h3>
+       <input type="text" id="signup-name" placeholder="Name" required>
+       <input type="email" id="signup-email" placeholder="Email" required>
+       <input type="password" id="signup-password" placeholder="Password" required>
+       <button type="button" id="signup-btn">Sign Up</button>
+       <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+     </div>
+ 
+     <div id="user-profile" style="display:none">
+       <h3>Welcome, <span id="user-name">User</span>!</h3>
+       <button type="button" id="logout-btn">Logout</button>
+ 
+       <div class="section" id="saved-movies-section">
+         <h3>Your Saved Movies</h3>
+         <ul id="saved-movies-list"></ul>
+       </div>
+     </div>
+   </div>
+ </div>
+ 
+ 
+ <script type="module">
+   // Import Firebase modules
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+ 
+   // Firebase configuration
+   const firebaseConfig = {
+     apiKey: "AIzaSyD1wAKyRzU9EavqFUgvofwelpj7gM79sbY",
+     authDomain: "moviepicker-e14f4.firebaseapp.com",
+     projectId: "moviepicker-e14f4",
+     storageBucket: "moviepicker-e14f4.firebasestorage.app",
+     messagingSenderId: "164660100747",
+     appId: "1:164660100747:web:bb074c168dc4b7f5131e8e",
+     measurementId: "G-YJF568XBTE"
+   };
+ 
+   // Initialize Firebase
+   const app = initializeApp(firebaseConfig);
+   const auth = getAuth(app);
+   const analytics = getAnalytics(app);
+ 
+   // All Firebase functionality in one module
+   document.addEventListener('DOMContentLoaded', function() {
+     // Get UI elements
+     const loginForm = document.getElementById('login-form');
+     const signupForm = document.getElementById('signup-form');
+     const userProfile = document.getElementById('user-profile');
+     const movieSection = document.getElementById('recommendation-form');
+ 
+     // Login elements
+     const loginEmail = document.getElementById('login-email');
+     const loginPassword = document.getElementById('login-password');
+     const loginBtn = document.getElementById('login-btn');
+ 
+     // Signup elements
+     const signupName = document.getElementById('signup-name');
+     const signupEmail = document.getElementById('signup-email');
+     const signupPassword = document.getElementById('signup-password');
+     const signupBtn = document.getElementById('signup-btn');
+ 
+     // Profile elements
+     const userName = document.getElementById('user-name');
+     const logoutBtn = document.getElementById('logout-btn');
+ 
+     // Toggle links
+     const showSignupLink = document.getElementById('show-signup');
+     const showLoginLink = document.getElementById('show-login');
+ 
+     // Toggle between login and signup forms
+     showSignupLink.addEventListener('click', (e) => {
+       e.preventDefault();
+       loginForm.style.display = 'none';
+       signupForm.style.display = 'block';
+     });
+ 
+     showLoginLink.addEventListener('click', (e) => {
+       e.preventDefault();
+       signupForm.style.display = 'none';
+       loginForm.style.display = 'block';
+     });
+ 
+     // Login functionality
+     loginBtn.addEventListener('click', () => {
+       const email = loginEmail.value;
+       const password = loginPassword.value;
+ 
+       if (!email || !password) {
+         alert('Please enter both email and password');
+         return;
+       }
+ 
+       signInWithEmailAndPassword(auth, email, password)
+         .catch(error => {
+           console.error('Login error:', error);
+           alert('Login failed: ' + error.message);
+         });
+     });
+ 
+     // Signup functionality
+     signupBtn.addEventListener('click', () => {
+       const name = signupName.value;
+       const email = signupEmail.value;
+       const password = signupPassword.value;
+ 
+       if (!name || !email || !password) {
+         alert('Please fill out all fields');
+         return;
+       }
+ 
+       createUserWithEmailAndPassword(auth, email, password)
+         .then(userCredential => {
+           return updateProfile(userCredential.user, {
+             displayName: name
+           });
+         })
+         .catch(error => {
+           console.error('Signup error:', error);
+           alert('Sign up failed: ' + error.message);
+         });
+     });
+ 
+     // Logout functionality
+     logoutBtn.addEventListener('click', () => {
+       signOut(auth)
+         .catch(error => {
+           console.error('Logout error:', error);
+           alert('Logout failed: ' + error.message);
+         });
+     });
+ 
+     // Auth state changes
+     onAuthStateChanged(auth, user => {
+       console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
+ 
+       if (user) {
+         // User is signed in
+         userName.textContent = user.displayName || user.email;
+         loginForm.style.display = 'none';
+         signupForm.style.display = 'none';
+         userProfile.style.display = 'block';
+ 
+         // Enable movie picker functionality
+         if (movieSection) {
+           movieSection.style.display = 'block';
+         }
+       } else {
+         // User is signed out
+         loginForm.style.display = 'block';
+         signupForm.style.display = 'none';
+         userProfile.style.display = 'none';
+       }
+     });
+   });
+   // Import Firestore
+ import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+ 
+ // Initialize Firestore
+ const db = getFirestore(app);
+ 
+ // Function to save a movie to the user's collection
+ async function saveMovie(userId, movie) {
+   try {
+     // Add a document to the "savedMovies" collection
+     await addDoc(collection(db, "savedMovies"), {
+       userId: userId,
+       title: movie.title,
+       year: movie.year || movie.release_date?.split("-")[0] || "",
+       rating: movie.rating || "",
+       content_rating: movie.content_rating || "",
+       summary: movie.summary || "",
+       savedAt: new Date().toISOString()
+     });
+ 
+     alert("Movie saved to your collection!");
+ 
+     // Refresh the saved movies list
+     await loadSavedMovies(userId);
+   } catch (error) {
+     console.error("Error saving movie: ", error);
+     alert("Failed to save movie: " + error.message);
+   }
+ }
+ 
+ // Function to load saved movies for a user
+ async function loadSavedMovies(userId) {
+   try {
+     const savedMoviesCollection = collection(db, "savedMovies");
+     const userMoviesQuery = query(savedMoviesCollection, where("userId", "==", userId));
+ 
+     const querySnapshot = await getDocs(userMoviesQuery);
+     const savedMoviesList = document.getElementById('saved-movies-list');
+     savedMoviesList.innerHTML = '';
+ 
+     if (querySnapshot.empty) {
+       savedMoviesList.innerHTML = '<li>No saved movies yet.</li>';
+       return;
+     }
+ 
+     querySnapshot.forEach((doc) => {
+       const movieData = doc.data();
+       const li = document.createElement('li');
+ 
+       // Create movie item with title, year, and delete button
+       li.innerHTML = `
+         <div class="saved-movie">
+           <span><strong>${movieData.title}</strong> ${movieData.year ? `(${movieData.year})` : ''}</span>
+           <button class="delete-movie" data-id="${doc.id}">Remove</button>
+         </div>
+       `;
+ 
+       savedMoviesList.appendChild(li);
+     });
+ 
+     // Add event listeners to delete buttons
+     document.querySelectorAll('.delete-movie').forEach(button => {
+       button.addEventListener('click', async (e) => {
+         const movieId = e.target.getAttribute('data-id');
+         await deleteMovie(movieId, userId);
+       });
+     });
+   } catch (error) {
+     console.error("Error loading saved movies: ", error);
+     const savedMoviesList = document.getElementById('saved-movies-list');
+     savedMoviesList.innerHTML = '<li>Error loading saved movies.</li>';
+   }
+ }
+ 
+ // Function to delete a movie from the user's collection
+ async function deleteMovie(movieId, userId) {
+   try {
+     await deleteDoc(doc(db, "savedMovies", movieId));
+     alert("Movie removed from your collection!");
+ 
+     // Refresh the saved movies list
+     await loadSavedMovies(userId);
+   } catch (error) {
+     console.error("Error deleting movie: ", error);
+     alert("Failed to remove movie: " + error.message);
+   }
+ }
+ // Function to add save buttons to movie results
+ function addSaveButtons() {
+   // For overlap movies
+   const overlapItems = document.querySelectorAll('#overlap-list li');
+   overlapItems.forEach(item => {
+     if (!item.querySelector('.save-movie')) {
+       const title = item.querySelector('strong').textContent;
+       const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
+       const year = yearMatch ? yearMatch[1] : "";
+       const summary = item.querySelector('.summary').textContent;
+       const contentRatingText = item.querySelector('.content-rating').textContent;
+       const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
+       const rating = ratingMatch ? ratingMatch[1] : "";
+       const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
+       const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
+       
+       const saveButton = document.createElement('button');
+       saveButton.className = 'save-movie';
+       saveButton.textContent = 'Save';
+       saveButton.style.marginLeft = '10px';
+       saveButton.onclick = () => {
+         const user = auth.currentUser;
+         if (user) {
+           saveMovie(user.uid, {
+             title,
+             year,
+             summary,
+             rating,
+             content_rating: contentRating
+           });
+         } else {
+           alert("Please log in to save movies");
+         }
+       };
+       
+       // Insert button after the title
+       const titleElement = item.querySelector('strong').parentNode;
+       titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
+     }
+   });
+   
+   // For recommended movies
+   const recommendationItems = document.querySelectorAll('#recommendation-list li');
+   recommendationItems.forEach(item => {
+     if (!item.querySelector('.save-movie')) {
+       const title = item.querySelector('strong').textContent;
+       const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
+       const year = yearMatch ? yearMatch[1] : "";
+       const summary = item.querySelector('.summary').textContent;
+       const contentRatingText = item.querySelector('.content-rating').textContent;
+       const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
+       const rating = ratingMatch ? ratingMatch[1] : "";
+       const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
+       const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
+       
+       const saveButton = document.createElement('button');
+       saveButton.className = 'save-movie';
+       saveButton.textContent = 'Save';
+       saveButton.style.marginLeft = '10px';
+       saveButton.onclick = () => {
+         const user = auth.currentUser;
+         if (user) {
+           saveMovie(user.uid, {
+             title,
+             year,
+             summary,
+             rating,
+             content_rating: contentRating
+           });
+         } else {
+           alert("Please log in to save movies");
+         }
+       };
+       
+       // Insert button after the title
+       const titleElement = item.querySelector('strong').parentNode;
+       titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
+     }
+   });
+ }
+ 
+ // Add this inside your onAuthStateChanged listener (where you handle user login state)
+ onAuthStateChanged(auth, user => {
+   console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
+ 
+   if (user) {
+     // User is signed in
+     userName.textContent = user.displayName || user.email;
+     loginForm.style.display = 'none';
+     signupForm.style.display = 'none';
+     userProfile.style.display = 'block';
+ 
+     // Enable movie picker functionality
+     if (movieSection) {
+       movieSection.style.display = 'block';
+     }
+ 
+     // Load the user's saved movies
+     loadSavedMovies(user.uid);
+   } else {
+     // User is signed out
+     loginForm.style.display = 'block';
+     signupForm.style.display = 'none';
+     userProfile.style.display = 'none';
+   }
+ });
+ 
+ 
+ document.getElementById("recommendation-form").addEventListener("submit", async function(event) {
+   event.preventDefault();
+ 
+   const users = [];
+   for (let i = 1; i <= userCount; i++) {
+     const url    = document.getElementById(`user${i}-url`).value.trim();
+     const manual   = window[`selectedMovies${i}`]() || [];
+     if (url) {
+       users.push(url);
+     } else if (manual.length) {
+       users.push(manual);
+     }
+   }
+ 
+   const includeText = document.getElementById("filter-include").value.trim();
+   const excludeText = document.getElementById("filter-exclude").value.trim();
+   const include = includeText ? includeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+   const exclude = excludeText ? excludeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+   const contentRatings = Array.from(document.querySelectorAll('#filter-content-ratings input:checked')).map(cb => cb.value);
+   const [minRating, maxRating] = ratingSlider.noUiSlider.get().map(v => parseFloat(v));
+   const payload = { users, include, exclude, content_ratings: contentRatings, rating_min: minRating, rating_max: maxRating, genres: selectedGenres };
+   const resp = await fetch("/recommendations", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify(payload)
+   });
+   const data = await resp.json();
+ 
+   const resultsDiv  = document.getElementById("results");
+   const overlapSec  = document.getElementById("overlap-section");
+   const overlapList = document.getElementById("overlap-list");
+   const recSec      = document.getElementById("recommendation-section");
+   const recList     = document.getElementById("recommendation-list");
+ 
+   // clear previous
+   overlapList.innerHTML = "";
+   recList.innerHTML     = "";
+ 
+   resultsDiv.style.display = "block";
+ 
+   // Overlap Movies
+   if (data.overlap && data.overlap.length) {
+     overlapSec.style.display = "block";
+     data.overlap.forEach(m => {
+       const li = document.createElement("li");
+       li.innerHTML = `
+         <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
+         <button class="summary-toggle">▼</button>
+         <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
+         <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+       `;
+       const btn = li.querySelector(".summary-toggle");
+       btn.onclick = e => {
+         const summ = li.querySelector(".summary");
+         const show = summ.style.display === "none";
+         summ.style.display = show ? "block" : "none";
+         e.target.textContent = show ? "▲" : "▼";
+       };
+       overlapList.appendChild(li);
+     });
+   } else {
+     overlapSec.style.display = "none";
+   }
+ 
+   // Recommendations
+   if (data.recommendations && data.recommendations.length) {
+     recSec.style.display = "block";
+     data.recommendations.forEach(m => {
+       const li = document.createElement("li");
+       li.innerHTML = `
+         <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
+         <button class="summary-toggle">▼</button>
+         <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
+         <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+       `;
+       const btn = li.querySelector(".summary-toggle");
+       btn.onclick = e => {
+         const summ = li.querySelector(".summary");
+         const show = summ.style.display === "none";
+         summ.style.display = show ? "block" : "none";
+         e.target.textContent = show ? "▲" : "▼";
+       };
+       recList.appendChild(li);
+     });
+   } else {
+     recSec.style.display = "none";
+   }
+ 
+   // Fallback if no results at all
+   if ((!data.overlap || data.overlap.length === 0) &&
+       (!data.recommendations || data.recommendations.length === 0)) {
+     recSec.style.display = "block";
+     recList.innerHTML = "<li>No overlap or recommendations found.</li>";
+   }
+ 
+   // Add this line to add save buttons to all movie results
+   addSaveButtons();
+ });
+ </script>
+ </body>
+ </html>
