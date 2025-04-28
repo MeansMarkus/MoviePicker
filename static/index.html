@@ -879,6 +879,86 @@ async function deleteMovie(movieId, userId) {
     alert("Failed to remove movie: " + error.message);
   }
 }
+// Function to add save buttons to movie results
+function addSaveButtons() {
+  // For overlap movies
+  const overlapItems = document.querySelectorAll('#overlap-list li');
+  overlapItems.forEach(item => {
+    if (!item.querySelector('.save-movie')) {
+      const title = item.querySelector('strong').textContent;
+      const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
+      const year = yearMatch ? yearMatch[1] : "";
+      const summary = item.querySelector('.summary').textContent;
+      const contentRatingText = item.querySelector('.content-rating').textContent;
+      const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
+      const rating = ratingMatch ? ratingMatch[1] : "";
+      const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
+      const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
+      
+      const saveButton = document.createElement('button');
+      saveButton.className = 'save-movie';
+      saveButton.textContent = 'Save';
+      saveButton.style.marginLeft = '10px';
+      saveButton.onclick = () => {
+        const user = auth.currentUser;
+        if (user) {
+          saveMovie(user.uid, {
+            title,
+            year,
+            summary,
+            rating,
+            content_rating: contentRating
+          });
+        } else {
+          alert("Please log in to save movies");
+        }
+      };
+      
+      // Insert button after the title
+      const titleElement = item.querySelector('strong').parentNode;
+      titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
+    }
+  });
+  
+  // For recommended movies
+  const recommendationItems = document.querySelectorAll('#recommendation-list li');
+  recommendationItems.forEach(item => {
+    if (!item.querySelector('.save-movie')) {
+      const title = item.querySelector('strong').textContent;
+      const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
+      const year = yearMatch ? yearMatch[1] : "";
+      const summary = item.querySelector('.summary').textContent;
+      const contentRatingText = item.querySelector('.content-rating').textContent;
+      const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
+      const rating = ratingMatch ? ratingMatch[1] : "";
+      const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
+      const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
+      
+      const saveButton = document.createElement('button');
+      saveButton.className = 'save-movie';
+      saveButton.textContent = 'Save';
+      saveButton.style.marginLeft = '10px';
+      saveButton.onclick = () => {
+        const user = auth.currentUser;
+        if (user) {
+          saveMovie(user.uid, {
+            title,
+            year,
+            summary,
+            rating,
+            content_rating: contentRating
+          });
+        } else {
+          alert("Please log in to save movies");
+        }
+      };
+      
+      // Insert button after the title
+      const titleElement = item.querySelector('strong').parentNode;
+      titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
+    }
+  });
+}
 
 // Add this inside your onAuthStateChanged listener (where you handle user login state)
 onAuthStateChanged(auth, user => {
