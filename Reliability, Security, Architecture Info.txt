@@ -1,0 +1,33 @@
+Reliability, Security, Architecture Information
+
+Reliability: 
+    main.py: Health-check endpoint
+    tmdb_API.py: Robust error handling in external calls
+
+Security: 
+    tmdb_API.py: 
+        load_dotenv(): API-key management & authorization
+    main.py: 
+        allow_origins=["https://web-production-93d43.up.railway.app"]: CORSMiddleware configured to limit which front ends can talk to api
+        MovieListRequest model: ensures JSON matches expected format for input validation
+    setupUserLoginSystem.js:
+        Implements signup/login forms, stores sessions in localStorage, and toggles UI on auth state
+    users.py: 
+        session cookies and a SQLite users.db for persistent credentials
+    
+Architecture: 
+    main.py:
+        app.include_router(tmdb_router): separates TMDB search endpoints from core app
+        allow_origins=["https://web-production-93d43.up.railway.app"]: limit which front ends can talk to api
+        @app.get("/", response_class=HTMLResponse): decouples frontend from API logic
+Separation of concerns
+    movie_parser.py: handles all list-parsing logic
+    filter_functions.py: Contains all filter logic and code
+    tmdb_API.py: lone integration point to the TMDB service
+Frontend-backend REST split
+    Static HTML/CSS/JS: client that POSTs to /recommendations and /search endpoints, keeping UI logic and data/fetch logic partitioned
+
+
+
+
+        
