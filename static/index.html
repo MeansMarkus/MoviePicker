@@ -663,6 +663,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+  import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
   
   // Firebase configuration
   const firebaseConfig = {
@@ -802,7 +804,7 @@ const db = getFirestore(app);
 async function saveMovie(userId, movie) {
   try {
     // Add a document to the "savedMovies" collection
-    await addDoc(collection(db, "savedMovies"), {
+    await addDoc(collection(db, "savedmovies"), {
       userId: userId,
       title: movie.title,
       year: movie.year || movie.release_date?.split("-")[0] || "",
@@ -825,7 +827,7 @@ async function saveMovie(userId, movie) {
 // Function to load saved movies for a user
 async function loadSavedMovies(userId) {
   try {
-    const savedMoviesCollection = collection(db, "savedMovies");
+    const savedMoviesCollection = collection(db, "savedmovies");
     const userMoviesQuery = query(savedMoviesCollection, where("userId", "==", userId));
     
     const querySnapshot = await getDocs(userMoviesQuery);
