@@ -258,6 +258,54 @@
 #saved-movies-list li:last-child {
   border-bottom: none;
 }
+.saved-movie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.delete-movie {
+  background-color: #e74c3c;
+  color: white;
+  padding: 5px 8px;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-movie:hover {
+  background-color: #c0392b;
+}
+
+.save-movie {
+  background-color: #2ecc71;
+  color: white;
+  padding: 5px 8px;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.save-movie:hover {
+  background-color: #27ae60;
+}
+
+#saved-movies-list {
+  margin-top: 10px;
+}
+
+#saved-movies-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #444;
+}
+
+#saved-movies-list li:last-child {
+  border-bottom: none;
+}
   </style>
 </head>
 
@@ -663,6 +711,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+  import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
   
   // Firebase configuration
   const firebaseConfig = {
@@ -679,6 +728,172 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const analytics = getAnalytics(app);
+  
+  // Initialize Firestore
+  const db = getFirestore(app);
+  
+  // Function to save a movie to the user's collection
+  async function saveMovie(userId, movie) {
+    try {
+      // Add a document to the "savedMovies" collection
+      await addDoc(collection(db, "savedMovies"), {
+        userId: userId,
+        title: movie.title,
+        year: movie.year || movie.release_date?.split("-")[0] || "",
+        rating: movie.rating || "",
+        content_rating: movie.content_rating || "",
+        summary: movie.summary || "",
+        savedAt: new Date().toISOString()
+      });
+      
+      alert("Movie saved to your collection!");
+      
+      // Refresh the saved movies list
+      await loadSavedMovies(userId);
+    } catch (error) {
+      console.error("Error saving movie: ", error);
+      alert("Failed to save movie: " + error.message);
+    }
+  }
+
+  // Function to load saved movies for a user
+  async function loadSavedMovies(userId) {
+    try {
+      const savedMoviesCollection = collection(db, "savedMovies");
+      const userMoviesQuery = query(savedMoviesCollection, where("userId", "==", userId));
+      
+      const querySnapshot = await getDocs(userMoviesQuery);
+      const savedMoviesList = document.getElementById('saved-movies-list');
+      savedMoviesList.innerHTML = '';
+      
+      if (querySnapshot.empty) {
+        savedMoviesList.innerHTML = '<li>No saved movies yet.</li>';
+        return;
+      }
+      
+      querySnapshot.forEach((doc) => {
+        const movieData = doc.data();
+        const li = document.createElement('li');
+        
+        // Create movie item with title, year, and delete button
+        li.innerHTML = `
+          <div class="saved-movie">
+            <span><strong>${movieData.title}</strong> ${movieData.year ? `(${movieData.year})` : ''}</span>
+            <button class="delete-movie" data-id="${doc.id}">Remove</button>
+          </div>
+        `;
+        
+        savedMoviesList.appendChild(li);
+      });
+      
+      // Add event listeners to delete buttons
+      document.querySelectorAll('.delete-movie').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const movieId = e.target.getAttribute('data-id');
+          await deleteMovie(movieId, userId);
+        });
+      });
+    } catch (error) {
+      console.error("Error loading saved movies: ", error);
+      const savedMoviesList = document.getElementById('saved-movies-list');
+      savedMoviesList.innerHTML = '<li>Error loading saved movies.</li>';
+    }
+  }
+
+  // Function to delete a movie from the user's collection
+  async function deleteMovie(movieId, userId) {
+    try {
+      await deleteDoc(doc(db, "savedMovies", movieId));
+      alert("Movie removed from your collection!");
+      
+      // Refresh the saved movies list
+      await loadSavedMovies(userId);
+    } catch (error) {
+      console.error("Error deleting movie: ", error);
+      alert("Failed to remove movie: " + error.message);
+    }
+  }
+
+  // Function to add save buttons to movie results
+  function addSaveButtons() {
+    // For overlap movies
+    const overlapItems = document.querySelectorAll('#overlap-list li');
+    overlapItems.forEach(item => {
+      if (!item.querySelector('.save-movie')) {
+        const title = item.querySelector('strong').textContent;
+        const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
+        const year = yearMatch ? yearMatch[1] : "";
+        const summary = item.querySelector('.summary').textContent;
+        const contentRatingText = item.querySelector('.content-rating').textContent;
+        const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
+        const rating = ratingMatch ? ratingMatch[1] : "";
+        const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
+        const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
+        
+        const saveButton = document.createElement('button');
+        saveButton.className = 'save-movie';
+        saveButton.textContent = 'Save';
+        saveButton.style.marginLeft = '10px';
+        saveButton.onclick = () => {
+          const user = auth.currentUser;
+          if (user) {
+            saveMovie(user.uid, {
+              title,
+              year,
+              summary,
+              rating,
+              content_rating: contentRating
+            });
+          } else {
+            alert("Please log in to save movies");
+          }
+        };
+        
+        // Insert button after the title
+        const titleElement = item.querySelector('strong').parentNode;
+        titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
+      }
+    });
+    
+    // For recommended movies
+    const recommendationItems = document.querySelectorAll('#recommendation-list li');
+    recommendationItems.forEach(item => {
+      if (!item.querySelector('.save-movie')) {
+        const title = item.querySelector('strong').textContent;
+        const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
+        const year = yearMatch ? yearMatch[1] : "";
+        const summary = item.querySelector('.summary').textContent;
+        const contentRatingText = item.querySelector('.content-rating').textContent;
+        const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
+        const rating = ratingMatch ? ratingMatch[1] : "";
+        const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
+        const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
+        
+        const saveButton = document.createElement('button');
+        saveButton.className = 'save-movie';
+        saveButton.textContent = 'Save';
+        saveButton.style.marginLeft = '10px';
+        saveButton.onclick = () => {
+          const user = auth.currentUser;
+          if (user) {
+            saveMovie(user.uid, {
+              title,
+              year,
+              summary,
+              rating,
+              content_rating: contentRating
+            });
+          } else {
+            alert("Please log in to save movies");
+          }
+        };
+        
+        // Insert button after the title
+        const titleElement = item.querySelector('strong').parentNode;
+        titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
+      }
+    });
+  }
   
   // All Firebase functionality in one module
   document.addEventListener('DOMContentLoaded', function() {
@@ -784,6 +999,9 @@
         if (movieSection) {
           movieSection.style.display = 'block';
         }
+        
+        // Load the user's saved movies
+        loadSavedMovies(user.uid);
       } else {
         // User is signed out
         loginForm.style.display = 'block';
@@ -792,210 +1010,118 @@
       }
     });
   });
-  // Import Firestore
-import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Initialize Firestore
-const db = getFirestore(app);
+  // Replace your existing recommendation form submit handler
+  // Moved outside of DOMContentLoaded to ensure it's only attached once
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById("recommendation-form");
+    
+    // Remove any existing event listeners (to avoid duplicates)
+    const newForm = form.cloneNode(true);
+    form.parentNode.replaceChild(newForm, form);
+    
+    // Add new event listener to the cloned form
+    newForm.addEventListener("submit", async function(event) {
+      event.preventDefault();
 
-// Function to save a movie to the user's collection
-async function saveMovie(userId, movie) {
-  try {
-    // Add a document to the "savedMovies" collection
-    await addDoc(collection(db, "savedMovies"), {
-      userId: userId,
-      title: movie.title,
-      year: movie.year || movie.release_date?.split("-")[0] || "",
-      rating: movie.rating || "",
-      content_rating: movie.content_rating || "",
-      summary: movie.summary || "",
-      savedAt: new Date().toISOString()
-    });
-    
-    alert("Movie saved to your collection!");
-    
-    // Refresh the saved movies list
-    await loadSavedMovies(userId);
-  } catch (error) {
-    console.error("Error saving movie: ", error);
-    alert("Failed to save movie: " + error.message);
-  }
-}
+      const users = [];
+      for (let i = 1; i <= userCount; i++) {
+        const url = document.getElementById(`user${i}-url`).value.trim();
+        const manual = window[`selectedMovies${i}`]() || [];
+        if (url) {
+          users.push(url);
+        } else if (manual.length) {
+          users.push(manual);
+        }
+      }
 
-// Function to load saved movies for a user
-async function loadSavedMovies(userId) {
-  try {
-    const savedMoviesCollection = collection(db, "savedMovies");
-    const userMoviesQuery = query(savedMoviesCollection, where("userId", "==", userId));
-    
-    const querySnapshot = await getDocs(userMoviesQuery);
-    const savedMoviesList = document.getElementById('saved-movies-list');
-    savedMoviesList.innerHTML = '';
-    
-    if (querySnapshot.empty) {
-      savedMoviesList.innerHTML = '<li>No saved movies yet.</li>';
-      return;
-    }
-    
-    querySnapshot.forEach((doc) => {
-      const movieData = doc.data();
-      const li = document.createElement('li');
+      const includeText = document.getElementById("filter-include").value.trim();
+      const excludeText = document.getElementById("filter-exclude").value.trim();
+      const include = includeText ? includeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+      const exclude = excludeText ? excludeText.split(",").map(w=>w.trim()).filter(Boolean) : [];
+      const contentRatings = Array.from(document.querySelectorAll('#filter-content-ratings input:checked')).map(cb => cb.value);
+      const [minRating, maxRating] = ratingSlider.noUiSlider.get().map(v => parseFloat(v));
+      const payload = { users, include, exclude, content_ratings: contentRatings, rating_min: minRating, rating_max: maxRating, genres: selectedGenres };
       
-      // Create movie item with title, year, and delete button
-      li.innerHTML = `
-        <div class="saved-movie">
-          <span><strong>${movieData.title}</strong> ${movieData.year ? `(${movieData.year})` : ''}</span>
-          <button class="delete-movie" data-id="${doc.id}">Remove</button>
-        </div>
-      `;
-      
-      savedMoviesList.appendChild(li);
-    });
-    
-    // Add event listeners to delete buttons
-    document.querySelectorAll('.delete-movie').forEach(button => {
-      button.addEventListener('click', async (e) => {
-        const movieId = e.target.getAttribute('data-id');
-        await deleteMovie(movieId, userId);
+      const resp = await fetch("/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
+      const data = await resp.json();
+
+      const resultsDiv = document.getElementById("results");
+      const overlapSec = document.getElementById("overlap-section");
+      const overlapList = document.getElementById("overlap-list");
+      const recSec = document.getElementById("recommendation-section");
+      const recList = document.getElementById("recommendation-list");
+
+      // clear previous
+      overlapList.innerHTML = "";
+      recList.innerHTML = "";
+
+      resultsDiv.style.display = "block";
+
+      // Overlap Movies
+      if (data.overlap && data.overlap.length) {
+        overlapSec.style.display = "block";
+        data.overlap.forEach(m => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
+            <button class="summary-toggle">▼</button>
+            <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
+            <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+          `;
+          const btn = li.querySelector(".summary-toggle");
+          btn.onclick = e => {
+            const summ = li.querySelector(".summary");
+            const show = summ.style.display === "none";
+            summ.style.display = show ? "block" : "none";
+            e.target.textContent = show ? "▲" : "▼";
+          };
+          overlapList.appendChild(li);
+        });
+      } else {
+        overlapSec.style.display = "none";
+      }
+
+      // Recommendations
+      if (data.recommendations && data.recommendations.length) {
+        recSec.style.display = "block";
+        data.recommendations.forEach(m => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <strong>${m.title}</strong> (${m.release_date?.split("-")[0]||"?"})
+            <button class="summary-toggle">▼</button>
+            <div class="content-rating">${m.content_rating || "NR"} | Audience Rating: ${m.rating||"N/A"}</div>
+            <div class="summary" style="display:none">${m.summary||"No summary."}</div>
+          `;
+          const btn = li.querySelector(".summary-toggle");
+          btn.onclick = e => {
+            const summ = li.querySelector(".summary");
+            const show = summ.style.display === "none";
+            summ.style.display = show ? "block" : "none";
+            e.target.textContent = show ? "▲" : "▼";
+          };
+          recList.appendChild(li);
+        });
+      } else {
+        recSec.style.display = "none";
+      }
+
+      // Fallback if no results at all
+      if ((!data.overlap || data.overlap.length === 0) &&
+          (!data.recommendations || data.recommendations.length === 0)) {
+        recSec.style.display = "block";
+        recList.innerHTML = "<li>No overlap or recommendations found.</li>";
+      }
+      
+      // Add this line to add save buttons to all movie results
+      addSaveButtons();
     });
-  } catch (error) {
-    console.error("Error loading saved movies: ", error);
-    const savedMoviesList = document.getElementById('saved-movies-list');
-    savedMoviesList.innerHTML = '<li>Error loading saved movies.</li>';
-  }
-}
-
-// Function to delete a movie from the user's collection
-async function deleteMovie(movieId, userId) {
-  try {
-    await deleteDoc(doc(db, "savedMovies", movieId));
-    alert("Movie removed from your collection!");
-    
-    // Refresh the saved movies list
-    await loadSavedMovies(userId);
-  } catch (error) {
-    console.error("Error deleting movie: ", error);
-    alert("Failed to remove movie: " + error.message);
-  }
-}
-
-// Add this inside your onAuthStateChanged listener (where you handle user login state)
-onAuthStateChanged(auth, user => {
-  console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
-  
-  if (user) {
-    // User is signed in
-    userName.textContent = user.displayName || user.email;
-    loginForm.style.display = 'none';
-    signupForm.style.display = 'none';
-    userProfile.style.display = 'block';
-    
-    // Enable movie picker functionality
-    if (movieSection) {
-      movieSection.style.display = 'block';
-    }
-    
-    // Load the user's saved movies
-    loadSavedMovies(user.uid);
-  } else {
-    // User is signed out
-    loginForm.style.display = 'block';
-    signupForm.style.display = 'none';
-    userProfile.style.display = 'none';
-  }
-});
-
-// Add this to your movie recommendations and overlap generation code
-// This adds "Save" buttons to each movie
-function addSaveButtons() {
-  // For overlap movies
-  const overlapItems = document.querySelectorAll('#overlap-list li');
-  overlapItems.forEach(item => {
-    if (!item.querySelector('.save-movie')) {
-      const title = item.querySelector('strong').textContent;
-      const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
-      const year = yearMatch ? yearMatch[1] : "";
-      const summary = item.querySelector('.summary').textContent;
-      const contentRatingText = item.querySelector('.content-rating').textContent;
-      const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
-      const rating = ratingMatch ? ratingMatch[1] : "";
-      const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
-      const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
-      
-      const saveButton = document.createElement('button');
-      saveButton.className = 'save-movie';
-      saveButton.textContent = 'Save';
-      saveButton.style.marginLeft = '10px';
-      saveButton.onclick = () => {
-        const user = auth.currentUser;
-        if (user) {
-          saveMovie(user.uid, {
-            title,
-            year,
-            summary,
-            rating,
-            content_rating: contentRating
-          });
-        } else {
-          alert("Please log in to save movies");
-        }
-      };
-      
-      // Insert button after the title
-      const titleElement = item.querySelector('strong').parentNode;
-      titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
-    }
   });
-  
-  // For recommended movies
-  const recommendationItems = document.querySelectorAll('#recommendation-list li');
-  recommendationItems.forEach(item => {
-    if (!item.querySelector('.save-movie')) {
-      const title = item.querySelector('strong').textContent;
-      const yearMatch = item.innerHTML.match(/\((\d{4})\)/);
-      const year = yearMatch ? yearMatch[1] : "";
-      const summary = item.querySelector('.summary').textContent;
-      const contentRatingText = item.querySelector('.content-rating').textContent;
-      const ratingMatch = contentRatingText.match(/Rating: ([0-9.]+)/);
-      const rating = ratingMatch ? ratingMatch[1] : "";
-      const contentRatingMatch = contentRatingText.match(/(G|PG|PG-13|R|NC-17)/);
-      const contentRating = contentRatingMatch ? contentRatingMatch[1] : "";
-      
-      const saveButton = document.createElement('button');
-      saveButton.className = 'save-movie';
-      saveButton.textContent = 'Save';
-      saveButton.style.marginLeft = '10px';
-      saveButton.onclick = () => {
-        const user = auth.currentUser;
-        if (user) {
-          saveMovie(user.uid, {
-            title,
-            year,
-            summary,
-            rating,
-            content_rating: contentRating
-          });
-        } else {
-          alert("Please log in to save movies");
-        }
-      };
-      
-      // Insert button after the title
-      const titleElement = item.querySelector('strong').parentNode;
-      titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
-    }
-  });
-}
-
-// Add this to your "recommendation-form" submit event listener
-// After displaying the results
-document.getElementById("recommendation-form").addEventListener("submit", async function(event) {
-  // ... your existing code for fetching and displaying recommendations
-
-  // After rendering all results, add this line at the bottom:
-  addSaveButtons();
-});
 </script>
+
 </body>
 </html>
