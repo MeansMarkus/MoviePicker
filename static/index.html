@@ -802,7 +802,7 @@
  async function saveMovie(userId, movie) {
    try {
      // Add a document to the "savedMovies" collection
-     const db = getFirestore(app); 
+     
      await addDoc(collection(db, "savedmovies"), {
        userId: userId,
        title: movie.title,
@@ -870,7 +870,7 @@
  // Function to delete a movie from the user's collection
  async function deleteMovie(movieId, userId) {
    try {
-     await deleteDoc(doc(db, "savedMovies", movieId));
+     await deleteDoc(doc(db, "savedmovies", movieId));
      alert("Movie removed from your collection!");
  
      // Refresh the saved movies list
@@ -960,33 +960,7 @@
      }
    });
  }
- 
- // Add this inside your onAuthStateChanged listener (where you handle user login state)
- onAuthStateChanged(auth, user => {
-   console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
- 
-   if (user) {
-     // User is signed in
-     userName.textContent = user.displayName || user.email;
-     loginForm.style.display = 'none';
-     signupForm.style.display = 'none';
-     userProfile.style.display = 'block';
- 
-     // Enable movie picker functionality
-     if (movieSection) {
-       movieSection.style.display = 'block';
-     }
- 
-     // Load the user's saved movies
-     loadSavedMovies(user.uid);
-   } else {
-     // User is signed out
-     loginForm.style.display = 'block';
-     signupForm.style.display = 'none';
-     userProfile.style.display = 'none';
-   }
- });
- 
+
  
  document.getElementById("recommendation-form").addEventListener("submit", async function(event) {
    event.preventDefault();
