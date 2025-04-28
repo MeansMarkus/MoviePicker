@@ -916,11 +916,11 @@
        };
        
        // Insert button after the title
-       const strong = item.querySelector('strong');
-       if (strong) {
-         strong.insertAdjacentElement('afterend', saveButton);
-      }
-
+       const titleElement = item.querySelector('strong').parentNode;
+       if(strong) {
+        strong.insertAdjacentElement('afterend', saveButton);
+       }
+     }
    });
    
    // For recommended movies
