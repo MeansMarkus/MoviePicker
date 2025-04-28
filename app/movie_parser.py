@@ -5,10 +5,11 @@ from bs4 import BeautifulSoup
 from app.tmdb_API import _fetch_tmdb_list, BASE_URL
 import json
 
-API_KEY = os.getenv("TMDB_API_KEY")
+API_KEY = os.getenv("TMDB_API_KEY") # Security: pulls api key from environment variables - secrets aren't hard coded
 if not API_KEY:
     raise RuntimeError("TMDB_API_KEY environment variable is not set")
 
+# Architecture: handles all list-parsing logic
 
 def parse_input_list(input_data):
     """

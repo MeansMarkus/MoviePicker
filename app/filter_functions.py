@@ -1,6 +1,8 @@
 import re
 from word2number import w2n
 
+# Contains all filter logic and code
+
 def _normalize(text: str) -> str:
     """
     Remove punctuation and convert text to lowercase for matching

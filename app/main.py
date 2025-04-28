@@ -20,17 +20,17 @@ from app.tmdb_API import (
 )
 
 app = FastAPI()
-app.include_router(tmdb_router)
+app.include_router(tmdb_router) # Architecture: separates TMDB search endpoints from core app
 
 @app.get("/health")
 def health_check():
     """
-    Health endpoint for monitoring
+    Health endpoint for monitoring for reliability 
 
     :return: Service status
     :rtype: dict
     """
-    return {"status": "ok"}
+    return {"status": "ok"} 
 
 @app.get("/genres")
 def fetch_genres():
@@ -45,14 +45,15 @@ def fetch_genres():
 # CORS to allow deployed frontend to call API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://web-production-93d43.up.railway.app"],
+    allow_origins=["https://web-production-93d43.up.railway.app"], # Security: limit which front ends can talk to api
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static") # Architecture: all client assets
 
+# Architecture: decouples frontend from API logic
 @app.get("/", response_class=HTMLResponse)
 def serve_frontend():
     """
@@ -64,6 +65,7 @@ def serve_frontend():
     with open("static/New_UI_Home.html") as f: # main UI html 
         return f.read()
 
+# Security: ensures JSON matches expected format for input validation
 class MovieListRequest(BaseModel):
     """
     Recommendations request model

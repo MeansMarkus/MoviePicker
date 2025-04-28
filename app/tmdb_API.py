@@ -2,8 +2,10 @@ import os
 import requests
 from dotenv import load_dotenv
 from fastapi import APIRouter
+ 
+load_dotenv() # Security: pulls api key from environment variables - secrets aren't hard coded
 
-load_dotenv()
+# Architecture: lone integration point to the TMDB service
 
 API_KEY = os.getenv("TMDB_API_KEY") # Bearer token!
 
@@ -12,6 +14,9 @@ HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json;charset=utf-8"
 }
+
+# Reliability: all API requests include a check response.status_code that returns empty lists or logs 
+# failure so uncaught exceptions don't crash the app
 
 def search_movie(title):
     """
@@ -187,9 +192,10 @@ def search_movies_endpoint(q: str, limit: int = 5):
         ]
     }
 
+#Security: API key is not exposed in the URL sanitizer
 def search_movies(q: str, limit: int = 5) -> list[dict]:
     """
-    Search TMDB from non-router contexts
+    Search TMDB from non-router contexts for partial movie titles
 
     :param q: Query string.
     :type q: str
