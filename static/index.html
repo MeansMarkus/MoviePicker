@@ -802,7 +802,8 @@
  async function saveMovie(userId, movie) {
    try {
      // Add a document to the "savedMovies" collection
-     await addDoc(collection(db, "savedMovies"), {
+     const db = getFirestore(app); 
+     await addDoc(collection(db, "savedmovies"), {
        userId: userId,
        title: movie.title,
        year: movie.year || movie.release_date?.split("-")[0] || "",
@@ -825,7 +826,7 @@
  // Function to load saved movies for a user
  async function loadSavedMovies(userId) {
    try {
-     const savedMoviesCollection = collection(db, "savedMovies");
+     const savedMoviesCollection = collection(db, "savedmovies");
      const userMoviesQuery = query(savedMoviesCollection, where("userId", "==", userId));
  
      const querySnapshot = await getDocs(userMoviesQuery);
