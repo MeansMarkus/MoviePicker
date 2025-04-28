@@ -916,9 +916,11 @@
        };
        
        // Insert button after the title
-       const titleElement = item.querySelector('strong').parentNode;
-       titleElement.insertBefore(saveButton, titleElement.querySelector('.summary-toggle'));
-     }
+       const strong = item.querySelector('strong');
+       if (strong) {
+         strong.insertAdjacentElement('afterend', saveButton);
+      }
+
    });
    
    // For recommended movies
