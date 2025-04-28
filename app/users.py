@@ -4,6 +4,8 @@ import sqlite3
 app = Flask(__name__)
 app.secret_key = "markus_is_coding_fire"
 
+# Security: session cookies and a SQLite users.db for persistent credentials
+
 def get_db():
     """
     New database connection to users.db
