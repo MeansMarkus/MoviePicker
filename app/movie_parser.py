@@ -12,8 +12,13 @@ if not API_KEY:
 
 def parse_input_list(input_data):
     """
-    Accepts either a list of movie titles or a URL to a movie list.
-    Returns a list of movie titles.
+    Accepts either a list of movie titles or URL to a movie list
+    Returns list of movie titles
+
+    :param input_data: Raw user input (list[str] or URL string)
+    :type input_data: Union[list[str], str]
+    :return: List of movie titles
+    :rtype: list[str]
     """
     if isinstance(input_data, list):
         return input_data
@@ -37,7 +42,12 @@ def parse_input_list(input_data):
 
 def parse_imdb_list(url):
     """
-    Scrape all pages of an IMDb list and return movie titles.
+    Scrape all pages of an IMDb list and return movie titles
+
+    :param url: URL of the IMDb list
+    :type url: str
+    :return: Titles from the list
+    :rtype: list[str]
     """
     headers = {'User-Agent': 'Mozilla/5.0'}
     # strip off query params
@@ -50,7 +60,7 @@ def parse_imdb_list(url):
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, 'html.parser')
 
-        # 1) Try JSON‑LD (new IMDb embeds the whole list here)
+        # Try JSON‑LD (new IMDb embeds whole list)
         ld = soup.find('script', {'type': 'application/ld+json'})
         if ld:
             data = json.loads(ld.string)
@@ -59,16 +69,16 @@ def parse_imdb_list(url):
                     name = el.get('item', {}).get('name')
                     if name:
                         titles.append(name.strip())
-                # JSON‑LD covers all pages in one go, so we can break
+                # JSON‑LD covers all pages in one go
                 break
 
-        # 2) Fallback to legacy HTML scraping
+        # HTML fallback - parsing list
         for div in soup.select('div.lister-item-content'):
             hdr = div.find('h3', class_='lister-item-header')
             if hdr and hdr.a and hdr.a.text:
                 titles.append(hdr.a.text.strip())
 
-        # 3) Paginate if needed
+        # next page link 
         nxt = soup.find('a', class_='lister-page-next')
         if nxt and nxt.get('href'):
             next_url = 'https://www.imdb.com' + nxt['href']
@@ -80,7 +90,12 @@ def parse_imdb_list(url):
 
 def parse_letterboxd_list(url: str) -> list[str]:
     """
-    Scrape only movie titles from a Letterboxd list URL, across all pages.
+    Scrape Letterboxd list URL for movie titles
+
+    :param url: URL of Letterboxd list
+    :type url: str
+    :return: Titles from all pages
+    :rtype: list[str]
     """
     titles: list[str] = []
     # Ensure URL ends with slash
@@ -110,7 +125,13 @@ def parse_letterboxd_list(url: str) -> list[str]:
 
 def parse_tmdb_list(list_url: str) -> list[str]:
     """
-    Fetch a TMDB list via the TMDB API and return movie titles.
+    Fetch TMDB list via API and return movie titles
+
+    :param list_url: URL of TMDB list page
+    :type list_url: str
+    :return: Titles from TMDB list
+    :rtype: list[str]
+    :raises ValueError: If URL has no list ID
     """
     m = re.search(r'/list/(\d+)', list_url)
     if not m:

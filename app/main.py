@@ -1,9 +1,9 @@
 from collections import Counter
+from typing import Union, List
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Union, List
 from pydantic import BaseModel
 from app.filter_functions import (word_filter, content_rating_filter, audience_rating_filter)
 
@@ -22,17 +22,27 @@ from app.tmdb_API import (
 app = FastAPI()
 app.include_router(tmdb_router)
 
-
 @app.get("/health")
 def health_check():
+    """
+    Health endpoint for monitoring
+
+    :return: Service status
+    :rtype: dict
+    """
     return {"status": "ok"}
 
 @app.get("/genres")
 def fetch_genres():
-    #Fetch and return TMDB genres dynamically
+    """
+    Dynamically pull all genres from TMDB
+
+    :return: List of genre names
+    :rtype: dict
+    """
     return {"genres": get_genre_list()}
 
-
+# CORS to allow deployed frontend to call API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://web-production-93d43.up.railway.app"],
@@ -45,10 +55,32 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 def serve_frontend():
-    with open("static/index.html") as f:
+    """
+    Serve frontend page 
+
+    :return: HTML content of frontend
+    :rtype: str
+    """
+    with open("static/New_UI_Home.html") as f: # main UI html 
         return f.read()
 
 class MovieListRequest(BaseModel):
+    """
+    Recommendations request model
+
+    :param users: List of movie inputs
+    :type users: List[Union[str, List[str]]]
+    :param include: Words required in either title or summary
+    :type include: List[str]
+    :param exclude: Words disallowed in title or summary
+    :type exclude: List[str]
+    :param content_ratings: Allowed content ratings
+    :type content_ratings: List[str]
+    :param rating_min: Minimum TMDB audience rating allowed
+    :type rating_min: float
+    :param rating_max: Maximum TMDB rating allowed
+    :type rating_max: float
+    """
     users: List[Union[str, List[str]]]
     include:        List[str] = []
     exclude:        List[str] = []
@@ -59,7 +91,15 @@ class MovieListRequest(BaseModel):
 
 @app.post("/recommendations")
 def recommend_movies(data: MovieListRequest):
-    # Parse each user’s list into sets & collect all titles
+    """
+    Compute overlap and movie recommendations
+
+    :param data: Recommendation request payload
+    :type data: MovieListRequest
+    :return: Dict with `overlap` and filtered `recommendations` lists
+    :rtype: dict
+    """
+    # parse each user’s input lists into sets & collect all titles
     user_lists = []
     all_titles = []
     for user_input in data.users:
@@ -68,34 +108,37 @@ def recommend_movies(data: MovieListRequest):
             user_lists.append(set(titles))
             all_titles.extend(titles)
 
-    # Resolve all input titles to TMDB IDs
+    # resolve input titles to TMDB IDs
     movie_ids = {
         mid
         for title in all_titles
         for mid in (search_movie(title),)
-        if mid
+        if mid # drop None results
     }
 
-    # Build overlap & candidate pool
+    # build overlap & candidate pool
     candidates = []
     overlap = []
     overlap_ids = set()
     overlap_titles = set()
 
     if len(user_lists) <= 1:
+        # 1 user: recommend based on all input movies
         for mid in movie_ids:
             candidates.extend(get_recommendations_for_movie(mid) or [])
     else:
+        # multiple users: find titles common to all users
         overlap_titles = set.intersection(*user_lists)
+        # translate overlapping titles to IDs
         overlap_ids = {
             mid
             for title in overlap_titles
             for mid in (search_movie(title),)
             if mid
         }
-        # Fetch overlap details
+        # fetch overlap movie details
         raw_overlap = [get_movie_details(mid) for mid in overlap_ids]
-        overlap = [
+        overlap = [ # j-son format
             {
                 "rating": m.get("vote_average"),
                 "title": m.get("title"),
@@ -106,7 +149,7 @@ def recommend_movies(data: MovieListRequest):
             for m in raw_overlap if m
         ]
 
-        # Recommendations from overlaps
+        # if there are overlapping movies, use "recommendations" endpoint
         if overlap_ids:
             for mid in overlap_ids:
                 candidates.extend(get_recommendations_for_movie(mid) or [])
@@ -120,15 +163,15 @@ def recommend_movies(data: MovieListRequest):
     #print("▶ overlap_titles:", overlap_titles)
     #print("▶ overlap_ids:", overlap_ids)
 
-    # Rank by frequency
+    # rank by frequency
     candidate_ids = [c["id"] for c in candidates if "id" in c]
     sorted_ids = [mid for mid, _ in Counter(candidate_ids).most_common()]
 
-    # Exclude *all* input movies (and overlaps)
+    # exclude *all* input movies (and overlaps)
     exclude = movie_ids.union(overlap_ids)
     recommended_ids = [mid for mid in sorted_ids if mid not in exclude]
 
-    # Fetch top‑10 recommendation details
+    # fetch top‑10 recommendation details
     raw_recs = [get_movie_details(mid) for mid in recommended_ids[:10]]
     recommendations = [
         {
@@ -150,6 +193,3 @@ def recommend_movies(data: MovieListRequest):
         "overlap": overlap,
         "recommendations": recommendations
     }
-
-def search_movies_endpoint(q: str):
-    return {"results": search_movies(q)}
