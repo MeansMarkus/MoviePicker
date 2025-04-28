@@ -5,16 +5,32 @@ app = Flask(__name__)
 app.secret_key = "markus_is_coding_fire"
 
 def get_db():
+    """
+    New database connection to users.db
+
+    :return: SQLite3 connection with row factory
+    :rtype: sqlite3.Connection
+    """
     conn = sqlite3.connect("users.db")
     conn.row_factory = sqlite3.Row
     return conn
 
 @app.route('/')
 def index():
+    """
+    Redirect to login page
+
+    :return: Redirect response
+    """
     return redirect('/login')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """
+    User registration form and submission
+
+    :return: Registration template or redirect on success
+    """
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -29,6 +45,11 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Handle user login form and auth
+
+    :return: Redirect to recommendations or back to login on failure
+    """
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -44,6 +65,11 @@ def login():
 
 @app.route('/recommendations')
 def recommendations():
+    """
+    Display recommendations page for logged-in user
+
+    :return: Recommendations template/redirect to login
+    """
     if 'user_id' not in session:
         return redirect('/login')
     username = session['username']
@@ -52,5 +78,10 @@ def recommendations():
 
 @app.route('/logout')
 def logout():
+    """
+    Log user out by clearing session
+
+    :return: Redirect to login page
+    """
     session.clear()
     return redirect('/login')
