@@ -26,5 +26,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run main script
-      run: python main.py
+    - name: Validate FastAPI App Starts
+      run: |
+        uvicorn app.main:app --port 8000 --host 127.0.0.1 --workers 1 &
+        sleep 5
+        curl --fail http://127.0.0.1:8000/health
